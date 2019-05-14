@@ -1,2 +1,2 @@
 # sella
-Sella: A large-scale relationships discovery tool for file-base tabular datasets.  
+Sella: A large-scale relationships discovery tool for file-based tabular datasets.  
