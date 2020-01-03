@@ -1,0 +1,12 @@
+This folder contains code used to experiment with different neural network models for cell label prediction.
+We are using the new selected 21 features to train the model, and there are 5 classes for the prediction label:[CH, DC, DE, DS, NDC]
+NeuralNetwork:
+    - NeuralNetwork.py: contains code to train and test the neural network model.
+    - Accuracy.txt: contains train and test accuracy of the neural network model using 17439 training samples and 5813 validation samples.
+    - model0.7.h5: contains the final saved neural network model.
+    - newTraining.data, newTraining_V2.data: training data.
+    - train0.7.data: training data used for neural network model. Combined newTraining.data and newTraining_V2.data, and randomly selected 70% of all the combined data as training data.
+    - test0.3.data: test data used for neural network model. Combined newTraining.data and newTraining_V2.data, and randomly selected 30% of all the combined data as testing data.
+    - result2layer.txt, result3layer.txt, result4layer.txt, result5layer.txt: contains result of experimented neural networks with different number of layers. We found that 3 layer has the highest test accuray.
+    - result3layer500epoch.txt: contains train and test accuracy of 3 layer neural network trained with 500 epochs with 16276 training samples and 6976 validation samples.
+
