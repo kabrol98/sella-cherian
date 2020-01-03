@@ -1,9 +1,0 @@
-This folder contains code and result for the feature engineering of previous 40 features used for CRF model.
-
-FeatureSelection
-    - FeatureImportance.py: Contains code used for feature engineering. The new 21 features are ranked using XGBClassifier.
-    - Accuracy_0.25_fold_crossvalidation.txt: Contains test accuracy of using from 1 to 40 number of features. The result shows using 21 features are enough to obtain a high accuracy.
-    - CombinedFeature.png: Feature importance rank of all features using combined data from newTraining.data & newTraining_V2.data.
-    - newTraining.data & newTraining_V2.data: training data used for feature engineering.
-    - Feature_importance_newTraining.png: result using only newTraining.data as training data.
-    - Feature_importance_newTraining_V2.png: result using only newTraining_V2.data as training data.
