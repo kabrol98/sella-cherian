@@ -13,7 +13,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.feature_selection import SelectFromModel
 
 alldata = []
-with open('data.txt','r') as f:
+with open('data.txt', 'r') as f:
     for line in f:
         data = []
         for word in line.split():
@@ -52,7 +52,7 @@ model.fit(feature, label)
 print(model.feature_importances_)
 plot_importance(model)
 pyplot.show()
-f= open("newSVMtraindata.txt","w+")
+f= open("newSVMtraindata.txt", "w+")
 alldata = np.concatenate((label.T, feature), axis=1)
 f.write(alldata)
 X_train, X_test, y_train, y_test = train_test_split(feature, label, test_size=0.25)

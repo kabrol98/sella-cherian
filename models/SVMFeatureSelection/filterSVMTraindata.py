@@ -1,5 +1,5 @@
 alldata = []
-with open('data.txt','r') as f:
+with open('data.txt', 'r') as f:
     for line in f:
         data = []
         for word in line.split():
@@ -14,7 +14,7 @@ for line in alldata:
     line.pop(1)
     line.pop(1)
 print(alldata)
-with open('newSVMdata.txt','w') as x:
+with open('newSVMdata.txt', 'w') as x:
     for line in alldata:
         for c in line:
             x.write(c+' ')
