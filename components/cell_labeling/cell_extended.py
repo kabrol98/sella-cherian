@@ -6,8 +6,8 @@ from typing import cast
 
 from openpyxl.cell import Cell
 
-from components.cell_labeling.cell_compact import CellCompact, CellContentType
-from components.cell_labeling.variables import default_header_values
+from components.cell_labeling.cell_compact import CellCompact, ContentType
+from components.cell_labeling.variables import default_header_values, default_null_values
 
 T = True
 F = False
@@ -58,7 +58,7 @@ class CellExtended:
             state["is_alpha"] = T
         state["text_in_header"] = self.is_text_in_header()
         state["all_small"] = self.is_all_small()
-        self.compact_cell.content_type = CellContentType.STRING
+        self.compact_cell.content_type = ContentType.STRING
 
     def as_number(self):
         state = self.state
@@ -67,7 +67,7 @@ class CellExtended:
         state["is_alpha"] = F
         state["all_small"] = F
         state["text_in_header"] = self.is_text_in_header()
-        self.compact_cell.content_type = CellContentType.NUMERIC
+        self.compact_cell.content_type = ContentType.NUMERIC
 
     def as_blank(self):
         state = self.state
@@ -77,19 +77,21 @@ class CellExtended:
         state["text_in_header"] = F
         state["all_small"] = F
         state["left_align"] = F
-        self.compact_cell.content_type = CellContentType.BLANK
+        self.compact_cell.content_type = None # blank cell doesn't have any content
 
     def apply_cell(self):
         raw_cell = self.raw_cell
         if isinstance(raw_cell.value, str):
             self.as_string()
-        if isinstance(raw_cell.value, float):
+            if raw_cell.value in default_null_values:
+                self.compact_cell.content_type = ContentType.NULL
+        elif isinstance(raw_cell.value, float):
             self.as_number()
-        if isinstance(raw_cell.value, int):
+        elif isinstance(raw_cell.value, int):
             self.as_number()
-        if isinstance(raw_cell.value, datetime.date):
+        elif isinstance(raw_cell.value, datetime.date):
             self.as_string()
-        if raw_cell.value is None:
+        elif raw_cell.value is None:
             self.as_blank()
         else:
             print("Type not defined yet!")

@@ -12,15 +12,15 @@ class CellTagType(Enum):
     NDC = "NDC"  # Not a Data Cell
 
 
-class CellContentType(Enum):
+class ContentType(Enum):
     NUMERIC = 0
     STRING = 1
-    BLANK = 2
+    NULL = 2
 
 
 class CellCompact:
     def __init__(self, location: Location, content: Any):
         self.location = location
         self.content = content
-        self.content_type: CellContentType = None
+        self.content_type: ContentType = None
 
