@@ -7,7 +7,7 @@ class FileMetaData:
         self.file_name: str = file_path.split("/")[-1]
         self.file_owner: int = file_stats.st_uid
         self.file_size: int = file_stats.st_size
-        self.last_saved_user: str = None # don't know
+        self.last_saved_user: str = None # TODO: don't know; unavailable on Linux/macOS
         self.date_created: int = file_stats.st_ctime
         self.date_modified: int = file_stats.st_mtime
 
