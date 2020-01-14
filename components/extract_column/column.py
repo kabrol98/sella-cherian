@@ -1,7 +1,10 @@
-from collections import defaultdict
-from typing import List
+from collections import defaultdict, namedtuple
+from typing import List, cast
 
-from components.cell_labeling.cell_compact import CellCompact, ContentType
+CellLabeled = namedtuple('CellLabeled', ['tag', 'cell'])
+
+from components.cell_labeling.cell_compact import CellCompact, ContentType, CellTagType
+from components.parse_files.metadata import ColumnMetaData
 
 
 class Column:
@@ -11,6 +14,7 @@ class Column:
         self.starting_cell: CellCompact = None
         self.ending_cell: CellCompact = None
         self.type: ContentType = None
+        self.metadata: ColumnMetaData = None
 
     def convert_cell_type(self, cell: CellCompact, max_type: ContentType) -> bool:
         if cell.content_type == max_type:
@@ -65,3 +69,6 @@ class Column:
         else:
             for cell in failed_cells:
                 self.convert_cell_type(cell, ContentType.NULL)
+
+
+

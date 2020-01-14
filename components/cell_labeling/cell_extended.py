@@ -165,3 +165,7 @@ class CellExtended:
             return True
         return False
 
+    def get_feature_vector(self):
+        values = self.state.values()
+        return [1 if x == T else F for x in values]
+

@@ -1,0 +1,95 @@
+from os import path
+from typing import List
+
+import openpyxl as xl
+import keras
+import numpy as np
+
+from components.cell_labeling.cell_compact import CellTagType
+from components.cell_labeling.cell_extended import CellExtended
+from components.extract_column.column import Column, CellLabeled
+from components.parse_files.metadata import ColumnMetaData
+
+
+class parser:
+    def __init__(self, file_path: str, model_path: str):
+        self.file_path = file_path
+        self.model = keras.models.load_model(model_path)
+
+    def file_validity_check(self) -> bool:
+        if not path.exists(self.file_path):
+            print("File does not exist")
+            return False
+        if not path.isfile(self.file_path):
+            print("Path specified is not a file")
+            return False
+        if not (self.file_path.endswith(".xlsx") or self.file_path.endswith(".xls")):
+            print("File must be either xlsx or xls")
+            return False
+
+    def classify_cells(self, cells):
+        result = []
+        for col in cells:
+            col_result = []
+            for cell in col:
+                classification = self.model.predict(cell.get_feature_vector(), batch_size=1)
+                label = np.argmax(classification)
+                if label < 0 or label > 4:
+                    raise RuntimeError("Invalid Label")
+                temp_dict = CellLabeled(tag=label, cell=cell.compact_cell)
+                col_result.append(temp_dict)
+            result.append(col_result)
+        return result
+
+    def parse(self):
+        result = self.file_validity_check()
+        if not result:
+            return None
+        workbook = xl.load_workbook(self.file_path)
+        sheet_names = workbook.get_sheet_names()
+        columns = []
+        for sheet_name in sheet_names:
+            worksheet = workbook[sheet_name]
+            merge_range = worksheet.merged_cells.ranges
+            if len(merge_range) != 0:
+                for item in merge_range:
+                    worksheet.unmerge_cells(str(item))
+            max_row_num = worksheet.max_row
+            max_col_num = worksheet.max_column
+            virtual_worksheet = [[None] * max_row_num] * max_col_num
+            for j in range(1, max_col_num + 1):
+                for i in range(1, max_row_num + 1):
+                    cell = CellExtended(worksheet.cell(row=i, col=j))
+                    virtual_i = i - 1
+                    virtual_j = j - 1
+                    if virtual_i - 1 >= 0:
+                        top_cell = virtual_worksheet[virtual_j][virtual_i - 1]
+                        if top_cell is None:
+                            top_cell = CellExtended(worksheet.cell(row=i - 1, col=j))
+                            virtual_worksheet[virtual_j][virtual_i - 1] = top_cell
+                        cell.apply_above_neighbor(top_cell)
+                    if virtual_i + 1 < max_row_num:
+                        bottom_cell = virtual_worksheet[virtual_j][virtual_i + 1]
+                        if bottom_cell is None:
+                            bottom_cell = CellExtended(worksheet.cell(row=i+1, col=j))
+                            virtual_worksheet[virtual_j][virtual_i + 1] = bottom_cell
+                        cell.apply_below_neighbor(bottom_cell)
+                    if virtual_j - 1 >= 0:
+                        left_cell = virtual_worksheet[virtual_j-1][virtual_i]
+                        if left_cell is None:
+                            left_cell = CellExtended(worksheet.cell(row=i, col=j-1))
+                            virtual_worksheet[virtual_j - 1][virtual_i] = left_cell
+                        cell.apply_left_neighbor(left_cell)
+                    if virtual_j + 1 < max_col_num:
+                        right_cell = virtual_worksheet[virtual_j+1][virtual_i]
+                        if right_cell is None:
+                            right_cell = CellExtended(worksheet.cell(row=i, col=j+1))
+                            virtual_worksheet[virtual_j+1][virtual_i] = right_cell
+                        cell.apply_right_neighbor(right_cell)
+            parsed_cells = self.classify_cells(virtual_worksheet)
+            column_metadata = ColumnMetaData(file_name=self.file_path, sheet_name=sheet_name)
+            for new_col in Column.extract_columns(parsed_cells, column_metadata):
+                columns.append(new_col)
+        return columns
+
+
