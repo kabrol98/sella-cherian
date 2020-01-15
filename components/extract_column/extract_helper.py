@@ -1,7 +1,7 @@
 from collections import Counter
 from typing import cast
 
-from components.cell_labeling.cell_compact import CellTagType, CellCompact
+from components.cell_labeling.cell_compact import CellTagType, CellCompact, ContentType
 from components.extract_column.column import Column
 from components.parse_files.metadata import ColumnMetaData
 
@@ -69,6 +69,19 @@ class ExtractHelper:
     def row_iterator(data, col_idx, start_row_idx=0):
         for row_idx in range(start_row_idx, len(data[col_idx])):
             yield data[col_idx][row_idx]
+
+    @staticmethod
+    def remove_empty_columns(columns):
+        def remove_col(col):
+            result = True
+            for cell in col:
+                if cell.content_type == ContentType.STRING:
+                    if cell.content != "":
+                        result = False
+                elif cell.content_type == ContentType.NUMERIC:
+                    result = False
+            return result
+        return filter(remove_col, columns)
 
 
     @staticmethod
@@ -160,6 +173,7 @@ class ExtractHelper:
                     if repeatingColumn:
                         break
                     j += 1
+                current_column.set_type()
                 columns.append(current_column)
                 current_column = None
 
@@ -234,9 +248,10 @@ class ExtractHelper:
                     if tryingToSetDSafterDS_DC_DE or tryingToSetCHafterDS_DC_DE:
                         break
                     j += 1
+                current_column.set_type()
                 columns.append(current_column)
                 current_column = None
-        return columns
+        return ExtractHelper.remove_empty_columns(columns)
 
 
 
