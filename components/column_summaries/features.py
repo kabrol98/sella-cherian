@@ -28,7 +28,7 @@ class Features:
         self.revise_features(column)
 
     def revise_features(self, column):
-        if column.type == None:
+        if column.type is None:
             return
         if column.type == ContentType.NULL:
             null_num = len(column)
@@ -59,5 +59,5 @@ class Features:
             self.common_frequencies1 = frequent_two[1][1]
         except:
             frequent_one = Counter(none_null_cell_values).most_common(1)
-            self.common_values0 = frequent_two[0][0]
-            self.common_frequencies0 = frequent_two[0][1]
+            self.common_values0 = frequent_one[0][0]
+            self.common_frequencies0 = frequent_one[0][1]
