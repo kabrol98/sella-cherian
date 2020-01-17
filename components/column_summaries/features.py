@@ -1,6 +1,7 @@
 from components.extract_column.column import Column
 from components.cell_labeling.cell_compact import CellCompact, ContentType, CellTagType
 from components.parse_files.metadata import ColumnMetaData, FileMetaData
+from bloomfilter import BloomFilter
 
 from collections import Counter
 import numpy as np
@@ -15,6 +16,9 @@ class Features:
         self.mean = 0
         self.std = 0
         #
+        # -- only for column.type == ContentType.NUMERIC
+        self.mask = 0
+        #
         self.common_values0 = 0
         self.common_frequencies0 = 0
         self.common_values1 = 0
@@ -24,7 +28,7 @@ class Features:
         #metadata:
         self.column_metadata = column.metadata
         self.file_metadata = file_metadata
-        
+
         self.revise_features(column)
 
     def revise_features(self, column):
@@ -50,6 +54,9 @@ class Features:
             self.value_range = self.max - self.min
             self.mean = np.mean(none_null_cell_values)
             self.std = np.std(none_null_cell_values)
+        else:
+            bloomfilter = BloomFilter(none_null_cell_values, 0.01)
+            self.mask = bloomfilter.intMask()
         self.unique_num = len(np.unique(np.array(none_null_cell_values)))
         try:
             frequent_two = Counter(none_null_cell_values).most_common(2)
@@ -61,3 +68,5 @@ class Features:
             frequent_one = Counter(none_null_cell_values).most_common(1)
             self.common_values0 = frequent_one[0][0]
             self.common_frequencies0 = frequent_one[0][1]
+        else:
+            print("column_summaries/features: most likely something wrong with cells value type")
