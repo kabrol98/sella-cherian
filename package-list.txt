@@ -7,7 +7,7 @@ absl-py=0.8.1=py37_0
 astor=0.8.0=py37_0
 blas=1.0=mkl
 c-ares=1.15.0=h1de35cc_1001
-ca-certificates=2019.11.27=0
+ca-certificates=2019.11.28=hecc5488_0
 certifi=2019.11.28=py37_0
 cycler=0.10.0=py37_0
 et_xmlfile=1.0.1=py37_0
@@ -40,11 +40,12 @@ mkl=2019.4=233
 mkl-service=2.3.0=py37h0b31af3_0
 mkl_fft=1.0.15=py37h3b54f70_1
 mkl_random=1.1.0=py37h86efe34_0
+mmh3=2.5.1=py37h0a44026_0
 ncurses=6.1=h0a44026_1
 numpy=1.17.4=py37h890c691_0
 numpy-base=1.17.4=py37h6575580_0
 openpyxl=3.0.2=py_0
-openssl=1.1.1d=h1de35cc_3
+openssl=1.1.1d=h0b31af3_0
 opt_einsum=3.1.0=py_0
 pandas=0.25.3=py37h0a44026_0
 pip=19.3.1=py37_0
