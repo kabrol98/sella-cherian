@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections import OrderedDict
 import datetime
 import numpy as np
@@ -11,6 +12,9 @@ from components.cell_labeling.variables import default_header_values, default_nu
 
 T = True
 F = False
+
+match_whitespaces_numeric = re.compile("\s+|\d+")
+match_whitespaces = re.compile("\s+")
 
 class CellExtended:
 
@@ -66,7 +70,7 @@ class CellExtended:
         state["is_blank"] = F
         state["is_alpha"] = F
         state["all_small"] = F
-        state["text_in_header"] = self.is_text_in_header()
+        state["text_in_header"] = F
         self.compact_cell.content_type = ContentType.NUMERIC
 
     def as_blank(self):
@@ -83,8 +87,8 @@ class CellExtended:
         raw_cell = self.raw_cell
         if isinstance(raw_cell.value, str):
             self.as_string()
-            if raw_cell.value in default_null_values:
-                self.compact_cell.content_type = ContentType.NULL
+            if raw_cell.value in default_null_values or re.match(match_whitespaces, raw_cell.value):
+                self.as_blank()
         elif isinstance(raw_cell.value, float):
             self.as_number()
         elif isinstance(raw_cell.value, int):
@@ -147,16 +151,19 @@ class CellExtended:
 
     def is_text_in_header(self):
         if isinstance(self.raw_cell.value, str):
-            lowerText = self.raw_cell.value.lower()
-            for header in default_header_values:
-                if header in lowerText:
-                    return True
-            if lowerText == "id":
-                return True
-            if lowerText == "mode":
-                return True
-            if lowerText == "hr":
-                return True
+            # print(len(re.sub(match_whitespaces_numeric, "", self.raw_cell.value)) > 0, self.raw_cell.value)
+            return len(re.sub(match_whitespaces_numeric, "", self.raw_cell.value)) > 0
+            # lowerText = self.raw_cell.value.lower()
+            # for header in default_header_values:
+            #     if header in lowerText:
+            #         return True
+            # if lowerText == "id":
+            #     return True
+            # if lowerText == "mode":
+            #     return True
+            # if lowerText == "hr":
+            #     return True
+
         return False
 
     def is_all_small(self):

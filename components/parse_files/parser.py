@@ -42,7 +42,7 @@ class Parser:
                 if label < 0 or label > 4:
                     raise RuntimeError("Invalid Label")
                 temp_dict = CellLabeled(tag=label, cell=cell.compact_cell)
-                print(get_tag_type_name(temp_dict.tag), temp_dict.cell)
+                print(get_tag_type_name(temp_dict.tag), temp_dict.cell, classification, cell.get_feature_vector())
                 col_result.append(temp_dict)
             result.append(col_result)
         test_exit()
@@ -66,9 +66,12 @@ class Parser:
             virtual_worksheet = [[None] * max_row_num] * max_col_num
             for j in range(1, max_col_num + 1):
                 for i in range(1, max_row_num + 1):
-                    cell = CellExtended(worksheet.cell(row=i, column=j))
                     virtual_i = i - 1
                     virtual_j = j - 1
+                    cell = virtual_worksheet[virtual_j][virtual_i]
+                    if cell is None:
+                        cell = CellExtended(worksheet.cell(row=i, column=j))
+                        virtual_worksheet[virtual_j][virtual_i] = cell
                     if virtual_i - 1 >= 0:
                         top_cell = virtual_worksheet[virtual_j][virtual_i - 1]
                         if top_cell is None:
