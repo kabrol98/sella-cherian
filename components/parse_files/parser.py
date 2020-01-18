@@ -78,24 +78,28 @@ class Parser:
                             top_cell = CellExtended(worksheet.cell(row=i - 1, column=j))
                             virtual_worksheet[virtual_j][virtual_i - 1] = top_cell
                         cell.apply_above_neighbor(top_cell)
+                        top_cell.apply_below_neighbor(cell)
                     if virtual_i + 1 < max_row_num:
                         bottom_cell = virtual_worksheet[virtual_j][virtual_i + 1]
                         if bottom_cell is None:
                             bottom_cell = CellExtended(worksheet.cell(row=i+1, column=j))
                             virtual_worksheet[virtual_j][virtual_i + 1] = bottom_cell
                         cell.apply_below_neighbor(bottom_cell)
+                        bottom_cell.apply_above_neighbor(cell)
                     if virtual_j - 1 >= 0:
                         left_cell = virtual_worksheet[virtual_j-1][virtual_i]
                         if left_cell is None:
                             left_cell = CellExtended(worksheet.cell(row=i, column=j-1))
                             virtual_worksheet[virtual_j - 1][virtual_i] = left_cell
                         cell.apply_left_neighbor(left_cell)
+                        left_cell.apply_right_neighbor(cell)
                     if virtual_j + 1 < max_col_num:
                         right_cell = virtual_worksheet[virtual_j+1][virtual_i]
                         if right_cell is None:
                             right_cell = CellExtended(worksheet.cell(row=i, column=j+1))
                             virtual_worksheet[virtual_j+1][virtual_i] = right_cell
                         cell.apply_right_neighbor(right_cell)
+                        right_cell.apply_left_neighbor(cell)
             parsed_cells = self.classify_cells(virtual_worksheet)
             column_metadata = ColumnMetaData(file_name=self.file_path, sheet_name=sheet_name)
             for new_col in ExtractHelper.extract_columns(parsed_cells, column_metadata):

@@ -24,5 +24,5 @@ class CellCompact:
         self.content = content
         self.content_type: ContentType = None
     def __str__(self):
-        return "CellCompact: location -> %s, content -> %s, content_type -> %s" % (self.location, self.content_type, self.content_type)
+        return "CellCompact: location -> %s, content -> %s, content_type -> %s" % (self.location, self.content, self.content_type)
 
