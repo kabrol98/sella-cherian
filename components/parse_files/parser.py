@@ -10,6 +10,9 @@ from components.cell_labeling.cell_extended import CellExtended
 from components.extract_column.column import Column, CellLabeled
 from components.extract_column.extract_helper import ExtractHelper
 from components.parse_files.metadata import ColumnMetaData
+from components.utils.test import test_dump, test_exit
+
+from components.utils.test import get_tag_type_name
 
 
 class Parser:
@@ -35,12 +38,14 @@ class Parser:
             col_result = []
             for cell in col:
                 classification = self.model.predict(cell.get_feature_vector(), batch_size=1)
-                label = np.argmax(classification)
+                label = int(np.argmax(classification))
                 if label < 0 or label > 4:
                     raise RuntimeError("Invalid Label")
                 temp_dict = CellLabeled(tag=label, cell=cell.compact_cell)
+                print(get_tag_type_name(temp_dict.tag), temp_dict.cell)
                 col_result.append(temp_dict)
             result.append(col_result)
+        test_exit()
         return result
 
     def parse(self):

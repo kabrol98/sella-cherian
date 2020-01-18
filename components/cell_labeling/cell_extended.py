@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 import datetime
+import numpy as np
 
 from openpyxl.cell import Cell
 
@@ -173,5 +174,6 @@ class CellExtended:
 
     def get_feature_vector(self):
         values = self.state.values()
-        return [1 if x == T else F for x in values]
+        result = np.array([1 if x == T else 0 for x in values])
+        return result.reshape(1, len(result))
 
