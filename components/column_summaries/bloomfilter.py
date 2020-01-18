@@ -17,7 +17,8 @@ class BloomFilter(object):
         for i in range(len(inputArray)):
             for j in range(self.hashCount):
                 digit = mmh3.hash(inputArray[i], j) % self.size
-                self.mask[digit] = min(self.cap - 1, self.mask[digit] + 1)
+                if self.mask[digit] < self.cap - 1:
+                    self.mask[digit] += 1
 
     def intMask(self):
         return int("".join(str(i) for i in self.mask), self.cap)
