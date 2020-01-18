@@ -14,7 +14,7 @@ T = True
 F = False
 
 match_whitespaces_numeric = re.compile("\s+|\d+")
-match_whitespaces = re.compile("\s+")
+match_whitespaces_only = re.compile("^[\s]+$")
 
 class CellExtended:
 
@@ -87,7 +87,7 @@ class CellExtended:
         raw_cell = self.raw_cell
         if isinstance(raw_cell.value, str):
             self.as_string()
-            if raw_cell.value in default_null_values or re.match(match_whitespaces, raw_cell.value):
+            if raw_cell.value in default_null_values or re.match(match_whitespaces_only, raw_cell.value):
                 self.as_blank()
         elif isinstance(raw_cell.value, float):
             self.as_number()
@@ -151,19 +151,7 @@ class CellExtended:
 
     def is_text_in_header(self):
         if isinstance(self.raw_cell.value, str):
-            # print(len(re.sub(match_whitespaces_numeric, "", self.raw_cell.value)) > 0, self.raw_cell.value)
             return len(re.sub(match_whitespaces_numeric, "", self.raw_cell.value)) > 0
-            # lowerText = self.raw_cell.value.lower()
-            # for header in default_header_values:
-            #     if header in lowerText:
-            #         return True
-            # if lowerText == "id":
-            #     return True
-            # if lowerText == "mode":
-            #     return True
-            # if lowerText == "hr":
-            #     return True
-
         return False
 
     def is_all_small(self):

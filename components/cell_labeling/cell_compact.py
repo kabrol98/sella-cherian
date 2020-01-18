@@ -6,9 +6,9 @@ Location = namedtuple('Location', ['col', 'row'])
 
 class CellTagType(Enum):
     CH = 0  # Column Header
-    DS = 1  # Data Start
-    DC = 2  # Data Continue
-    DE = 3  # Data End
+    DC = 1  # Data Continue
+    DE = 2  # Data End
+    DS = 3  # Data Start
     NDC = 4  # Not a Data Cell
 
 
