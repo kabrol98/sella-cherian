@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from datetime import datetime
-from typing import cast
+import datetime
 
 from openpyxl.cell import Cell
 
@@ -133,10 +132,17 @@ class CellExtended:
         self.state["below_blank"] = bottom_cell.state["is_blank"]
 
     def is_alphabet(self):
-        return cast(str, self.raw_cell.value).isalpha()
+        return self.raw_cell.value.isalpha()
 
     def is_alphanumeric(self):
-        return cast(str, self.raw_cell.value).isalnum()
+        if isinstance(self.raw_cell.value, str):
+            return self.raw_cell.value.isalnum()
+        elif isinstance(self.raw_cell.value, int):
+            return True
+        elif isinstance(self.raw_cell.value, float):
+            return True
+        else:
+            return False
 
     def is_text_in_header(self):
         if isinstance(self.raw_cell.value, str):
