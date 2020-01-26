@@ -118,23 +118,23 @@ class CellExtended:
             state["underline_font"] = T
 
     def apply_left_neighbor(self, left_cell: CellExtended):
-        self.state["left_alpha"] = left_cell.state["is_alpha"]
-        self.state["left_num"] = left_cell.state["is_num"]
+        self.state["left_alpha"] = left_cell.state["is_alpha"] if left_cell is not None else False
+        self.state["left_num"] = left_cell.state["is_num"] if left_cell is not None else False
 
     def apply_right_neighbor(self, right_cell: CellExtended):
-        self.state["right_num"] = right_cell.state["is_num"]
-        self.state["right_blank"] = right_cell.state["is_blank"]
+        self.state["right_num"] = right_cell.state["is_num"] if right_cell is not None else False
+        self.state["right_blank"] = right_cell.state["is_blank"] if right_cell is not None else True
 
     def apply_above_neighbor(self, top_cell: CellExtended):
-        self.state["above_alpha"] = top_cell.state["is_alpha"]
-        self.state["above_in_header"] = top_cell.state["text_in_header"]
-        self.state["above_alphanum"] = top_cell.is_alphanumeric()
-        self.state["above_num"] = top_cell.state["is_num"]
-        self.state["above_blank"] = top_cell.state["is_blank"]
+        self.state["above_alpha"] = top_cell.state["is_alpha"] if top_cell is not None else False
+        self.state["above_in_header"] = top_cell.state["text_in_header"] if top_cell is not None else False
+        self.state["above_alphanum"] = top_cell.is_alphanumeric() if top_cell is not None else False
+        self.state["above_num"] = top_cell.state["is_num"] if top_cell is not None else False
+        self.state["above_blank"] = top_cell.state["is_blank"] if top_cell is not None else True
 
     def apply_below_neighbor(self, bottom_cell: CellExtended):
-        self.state["below_num"] = bottom_cell.state["is_num"]
-        self.state["below_blank"] = bottom_cell.state["is_blank"]
+        self.state["below_num"] = bottom_cell.state["is_num"] if bottom_cell is not None else None
+        self.state["below_blank"] = bottom_cell.state["is_blank"] if bottom_cell is not None else True
 
     def is_alphabet(self):
         return self.raw_cell.value.isalpha()
