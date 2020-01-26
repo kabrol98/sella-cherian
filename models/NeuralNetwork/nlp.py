@@ -20,15 +20,16 @@ all_col_names = ["file_name", "is_alpha", "text_in_header", "is_num", "is_alphan
 
 data_col_names = ["is_blank", "bold_font","below_blank","has_merge_cell","above_alpha","left_align","right_blank","above_blank","above_num","above_alphanum","right_align","underline_font","below_num","left_alpha","above_in_header","left_num","all_small","is_alpha","right_num","text_in_header","is_num"]
 
+FEATURE_LENGTH = len(data_col_names)
 
 
-def get_lists(representation, df, row_idxs, is_label = False):
+
+def get_lists(df, row_idxs, is_label = False):
     raw_df = df.iloc[row_idxs]
     if is_label:
         return raw_df[['label']].values.tolist()
     else:
-        temp_lists = raw_df[data_col_names].values.tolist()
-        return [representation[tuple(temp_l)] for temp_l in temp_lists]
+        return raw_df[data_col_names].values.tolist()
 
 def ignore_accuracy_of_class(class_to_ignore=0):
     """https://stackoverflow.com/questions/47270722/how-to-define-a-custom-accuracy-in-keras-to-ignore-samples-with-a-particular-gol"""
@@ -68,8 +69,8 @@ train_column_names = random.sample(column_names, math.floor(len(column_names) * 
 test_column_names = [name for name in column_names if name not in train_column_names]
 
 
-x_train = [get_lists(vec_representation, all_data, columns_set[name]) for name in train_column_names]
-x_test = [get_lists(vec_representation, all_data, columns_set[name]) for name in test_column_names]
+x_train = [get_lists(all_data, columns_set[name]) for name in train_column_names]
+x_test = [get_lists(all_data, columns_set[name]) for name in test_column_names]
 max_len = 0
 for l in x_train:
     if len(l) > max_len:
@@ -79,10 +80,10 @@ for l in x_test:
         max_len = len(l)
 for l in x_train:
     while len(l) < max_len:
-        l.append(PAD_CONTENT)
+        l.append([PAD_CONTENT] * FEATURE_LENGTH)
 for l in x_test:
     while len(l) < max_len:
-        l.append(PAD_CONTENT)
+        l.append([PAD_CONTENT] * FEATURE_LENGTH)
 x_train = np.array(x_train)
 x_test = np.array(x_test)
 
@@ -90,7 +91,7 @@ encoder = LabelEncoder()
 y_train_temp = []
 encoder_learner = []
 for name in train_column_names:
-    res = get_lists(vec_representation, all_data, columns_set[name], True)
+    res = get_lists(all_data, columns_set[name], True)
     y_train_temp.append(res)
     encoder_learner.extend(res)
 encoder.fit(encoder_learner)
@@ -105,32 +106,30 @@ y_train = np.array(y_train)
 # exit(1)
 y_test = []
 for name in test_column_names:
-    res = (encoder.transform(get_lists(vec_representation, all_data, columns_set[name], True)) + 1).tolist()
+    res = (encoder.transform(get_lists(all_data, columns_set[name], True)) + 1).tolist()
     while len(res) < max_len:
         res.append(PAD_TAG)
     y_test.append(res)
 y_test = np.array(y_test)
-# y_test = pd.get_dummies(y_test)
-# y_test = y_test.values
 
 CLASS_NUM = 5 + 1
 VOCAB_SIZE = len(vec_representation) + 1
 BATCH_SIZE = 10
-EPOCHS = 10
+EPOCHS = 20
 DROPOUT = 0.1
 
 model = Sequential()
-model.add(InputLayer(input_shape=(max_len,)))
-model.add(Embedding(VOCAB_SIZE, 128))
-model.add(Bidirectional(LSTM(128, return_sequences=True)))
+# model.add(InputLayer(input_shape=(max_len, FEATURE_LENGTH)))
+model.add(Bidirectional(LSTM(128, return_sequences=True), input_shape=(None, FEATURE_LENGTH)))
 model.add(TimeDistributed(Dense(CLASS_NUM)))
 model.add(Activation('softmax'))
 model.compile(loss='categorical_crossentropy',
               optimizer=Adam(),
-              metrics=['accuracy', ignore_accuracy_of_class(PAD_TAG)])
+              metrics=['accuracy'])#, ignore_accuracy_of_class(PAD_TAG)])
 model.summary()
 model.fit(x_train, to_categorical(y_train, CLASS_NUM), batch_size=BATCH_SIZE, epochs=EPOCHS, validation_split=0.2, verbose=2)
 scores = model.evaluate(x_test, to_categorical(y_test, CLASS_NUM))
+model.save(os.path.abspath(os.path.join(os.path.dirname(__file__), "lstm.h5")))
 print(f"{model.metrics_names[1]}: {scores[1] * 100}")
 
 

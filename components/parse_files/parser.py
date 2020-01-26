@@ -37,14 +37,20 @@ class Parser:
         for col in cells:
             col_result = []
             for cell in col:
-                classification = self.model.predict(cell.get_feature_vector(), batch_size=1)
-                label = int(np.argmax(classification))
-                if label < 0 or label > 4:
+                col_result.append(cell.get_feature_vector() + 1)
+            classification = self.model.predict([col_result], batch_size = 1)
+            tagged_result = []
+            # print(classification)
+            for idx, cell in enumerate(col):
+                label = int(np.argmax(classification[idx][0][1:])) # the first tag should not exist
+                # print(label)
+                # test_exit()
+                if label < 0 or label > 5:
                     raise RuntimeError("Invalid Label")
                 temp_dict = CellLabeled(tag=label, cell=cell.compact_cell)
                 print(get_tag_type_name(temp_dict.tag), temp_dict.cell, cell.get_feature_vector())
-                col_result.append(temp_dict)
-            result.append(col_result)
+                tagged_result.append(temp_dict)
+            result.append(tagged_result)
         test_exit()
         return result
 
