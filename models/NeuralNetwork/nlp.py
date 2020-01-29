@@ -44,13 +44,16 @@ def ignore_accuracy_of_class(class_to_ignore=0):
         return accuracy
     return ignore_acc
 
-def compute_weights(counts_dict, mu=0.15):
+def compute_weights(counts_dict):
     """https://datascience.stackexchange.com/questions/13490/how-to-set-class-weights-for-imbalanced-classes-in-keras"""
     total = np.sum(list(counts_dict.values()))
     class_weight = dict()
     for key, val in counts_dict.items():
-        score = math.log(mu*total/float(val))
-        class_weight[key] = score if score > 1.0 else 1.0
+        if key == 0:
+            score = 0
+        else:
+            score = math.log(total/float(val))
+        class_weight[key] = score * 5 if score > 1.0 else 1.0
     return class_weight
 
 all_data = pd.read_csv(os.path.abspath(os.path.join(os.path.dirname(__file__), "newTraining.data")), names=all_col_names, header=None, delimiter=r"\s+")
@@ -118,7 +121,11 @@ for j in y_train:
         label_weights[k] += 1
 label_weights = compute_weights(label_weights)
 y_train = np.array(y_train)
-vector_func = np.vectorize(lambda x: label_weights[x])
+
+def vec_func(x):
+    # print(x, label_weights[x])
+    return label_weights[x]
+vector_func = np.vectorize(vec_func)
 sample_weights = vector_func(y_train)
 
 # print(y_train)
@@ -139,7 +146,7 @@ DROPOUT = 0.1
 
 model = Sequential()
 # model.add(InputLayer(input_shape=(max_len, FEATURE_LENGTH)))
-model.add(Bidirectional(LSTM(128, return_sequences=True, dropout=DROPOUT, recurrent_dropout=DROPOUT), input_shape=(None, FEATURE_LENGTH)))
+model.add(Bidirectional(LSTM(12, return_sequences=True, dropout=DROPOUT, recurrent_dropout=DROPOUT), input_shape=(None, FEATURE_LENGTH)))
 model.add(TimeDistributed(Dense(CLASS_NUM)))
 model.add(Activation('softmax'))
 model.compile(loss='categorical_crossentropy',
