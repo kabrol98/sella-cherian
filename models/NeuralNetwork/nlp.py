@@ -2,11 +2,12 @@ import os
 
 import numpy as np
 import pandas as pd
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import random
 import math
 
 from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import confusion_matrix
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, InputLayer, Bidirectional, TimeDistributed, Embedding, Activation
 from keras.optimizers import Adam
@@ -27,7 +28,7 @@ FEATURE_LENGTH = len(data_col_names)
 def get_lists(df, row_idxs, is_label = False):
     raw_df = df.iloc[row_idxs]
     if is_label:
-        return raw_df[['label']].values.tolist()
+        return raw_df[['label']].values.flatten().tolist()
     else:
         return raw_df[data_col_names].values.tolist()
 
@@ -41,8 +42,16 @@ def ignore_accuracy_of_class(class_to_ignore=0):
         matches = K.cast(K.equal(y_true_class, y_pred_class), 'int32') * ignore_mask
         accuracy = K.sum(matches) / K.maximum(K.sum(ignore_mask), 1)
         return accuracy
-
     return ignore_acc
+
+def compute_weights(counts_dict, mu=0.15):
+    """https://datascience.stackexchange.com/questions/13490/how-to-set-class-weights-for-imbalanced-classes-in-keras"""
+    total = np.sum(list(counts_dict.values()))
+    class_weight = dict()
+    for key, val in counts_dict.items():
+        score = math.log(mu*total/float(val))
+        class_weight[key] = score if score > 1.0 else 1.0
+    return class_weight
 
 all_data = pd.read_csv(os.path.abspath(os.path.join(os.path.dirname(__file__), "newTraining.data")), names=all_col_names, header=None, delimiter=r"\s+")
 
@@ -95,13 +104,23 @@ for name in train_column_names:
     y_train_temp.append(res)
     encoder_learner.extend(res)
 encoder.fit(encoder_learner)
+# print(encoder.classes_)
+# ['CH' 'DC' 'DE' 'DS' 'NDC']
 y_train = []
 for y in y_train_temp:
     res = (encoder.transform(y)+1).tolist()
     while len(res) < max_len:
         res.append(PAD_TAG)
     y_train.append(res)
+label_weights = defaultdict(int)
+for j in y_train:
+    for k in j:
+        label_weights[k] += 1
+label_weights = compute_weights(label_weights)
 y_train = np.array(y_train)
+vector_func = np.vectorize(lambda x: label_weights[x])
+sample_weights = vector_func(y_train)
+
 # print(y_train)
 # exit(1)
 y_test = []
@@ -120,16 +139,19 @@ DROPOUT = 0.1
 
 model = Sequential()
 # model.add(InputLayer(input_shape=(max_len, FEATURE_LENGTH)))
-model.add(Bidirectional(LSTM(128, return_sequences=True), input_shape=(None, FEATURE_LENGTH)))
+model.add(Bidirectional(LSTM(128, return_sequences=True, dropout=DROPOUT, recurrent_dropout=DROPOUT), input_shape=(None, FEATURE_LENGTH)))
 model.add(TimeDistributed(Dense(CLASS_NUM)))
 model.add(Activation('softmax'))
 model.compile(loss='categorical_crossentropy',
               optimizer=Adam(),
+              sample_weight_mode="temporal",
               metrics=['accuracy'])#, ignore_accuracy_of_class(PAD_TAG)])
 model.summary()
-model.fit(x_train, to_categorical(y_train, CLASS_NUM), batch_size=BATCH_SIZE, epochs=EPOCHS, validation_split=0.2, verbose=2)
-scores = model.evaluate(x_test, to_categorical(y_test, CLASS_NUM))
+model.fit(x_train, to_categorical(y_train, CLASS_NUM), batch_size=BATCH_SIZE, epochs=EPOCHS, validation_split=0.2, verbose=2, sample_weight=sample_weights)
 model.save(os.path.abspath(os.path.join(os.path.dirname(__file__), "lstm.h5")))
+scores = model.evaluate(x_test, to_categorical(y_test, CLASS_NUM))
+predictions = model.predict(x_test)
+print(confusion_matrix(y_test.flatten(), y_pred=np.apply_along_axis(lambda arr: np.argmax(arr), 1, predictions.reshape(-1, predictions.shape[-1]))))
 print(f"{model.metrics_names[1]}: {scores[1] * 100}")
 
 

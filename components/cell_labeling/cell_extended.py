@@ -18,11 +18,28 @@ match_whitespaces_only = re.compile("^[\s]+$")
 
 class CellExtended:
 
-    def __init__(self, raw_cell: Cell):
-        self.raw_cell = raw_cell
-        self.compact_cell = self.initialize_compact_cell()
-        self.state = self.initialize_state()
-        self.apply_cell()
+    @staticmethod
+    def get_ndc_cell():
+        cell = CellExtended()
+        state = cell.state
+        state["is_num"] = F
+        state["is_blank"] = T
+        state["is_alpha"] = F
+        state["text_in_header"] = F
+        state["all_small"] = F
+        state["left_align"] = F
+        return cell
+
+    def __init__(self, raw_cell: Cell = None):
+        if raw_cell is not None:
+            self.raw_cell = raw_cell
+            self.compact_cell = self.initialize_compact_cell()
+            self.state = self.initialize_state()
+            self.apply_cell()
+        else:
+            self.raw_cell = None
+            self.compact_cell = None
+            self.state = self.initialize_state()
 
     def initialize_compact_cell(self):
         return CellCompact((self.raw_cell.row, self.raw_cell.column), self.raw_cell.value)
