@@ -1,20 +1,23 @@
 from __future__ import annotations
 
+import datetime
 import re
 from collections import OrderedDict
-import datetime
-import numpy as np
 
+import numpy as np
 from openpyxl.cell import Cell
 
 from components.cell_labeling.cell_compact import CellCompact, ContentType
-from components.cell_labeling.variables import default_header_values, default_null_values
+from components.cell_labeling.variables import default_null_values
 
 T = True
 F = False
 
 match_whitespaces_numeric = re.compile("\s+|\d+")
 match_whitespaces_only = re.compile("^[\s]+$")
+
+def is_cell_empty(value):
+    return value in default_null_values or re.match(match_whitespaces_only, value)
 
 class CellExtended:
 
@@ -55,7 +58,7 @@ class CellExtended:
         state["right_blank"] = T
         state["above_blank"] = T
         state["above_num"] = F
-        state["above_alphanum"] = F # inconsistency here, should include is_alphanum
+        state["above_alphanum"] = F  # inconsistency here, should include is_alphanum
         state["right_align"] = F
         state["underline_font"] = F
         state["below_num"] = F
@@ -98,13 +101,13 @@ class CellExtended:
         state["text_in_header"] = F
         state["all_small"] = F
         state["left_align"] = F
-        self.compact_cell.content_type = None # blank cell doesn't have any content
+        self.compact_cell.content_type = None  # blank cell doesn't have any content
 
     def apply_cell(self):
         raw_cell = self.raw_cell
         if isinstance(raw_cell.value, str):
             self.as_string()
-            if raw_cell.value in default_null_values or re.match(match_whitespaces_only, raw_cell.value):
+            if is_cell_empty(raw_cell.value):
                 self.as_blank()
         elif isinstance(raw_cell.value, float):
             self.as_number()
@@ -188,4 +191,3 @@ class CellExtended:
         values = self.state.values()
         result = np.array([1 if x == T else 0 for x in values])
         return result.reshape(1, len(result))
-

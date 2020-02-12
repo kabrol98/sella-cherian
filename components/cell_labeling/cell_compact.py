@@ -4,6 +4,7 @@ from typing import Any
 
 Location = namedtuple('Location', ['col', 'row'])
 
+
 class CellTagType(IntEnum):
     CH = 0  # Column Header
     DC = 1  # Data Continue
@@ -23,6 +24,7 @@ class CellCompact:
         self.location = location
         self.content = content
         self.content_type: ContentType = None
-    def __str__(self):
-        return "CellCompact: location -> %s, content -> %s, content_type -> %s" % (self.location, self.content, self.content_type)
 
+    def __str__(self):
+        return "CellCompact: location -> %s, content -> %s, content_type -> %s" % (
+        self.location, self.content, self.content_type)

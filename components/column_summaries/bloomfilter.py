@@ -1,8 +1,9 @@
-import numpy as np
 import mmh3
+import numpy as np
+
 
 class BloomFilter(object):
-    def __init__(self, inputArray, probability, cap = 2):
+    def __init__(self, inputArray, probability, cap=2):
         inputSize = len(inputArray)
 
         self.falsePos = probability
@@ -26,7 +27,7 @@ class BloomFilter(object):
     # for testing purpose
     def check(self, item):
         for i in range(self.hashCount):
-            digit = mmh3.hash(item,i) % self.size
+            digit = mmh3.hash(item, i) % self.size
             if self.mask[digit] == False:
                 return False
         return True

@@ -14,5 +14,6 @@ with SimpleTest():
     model = keras.models.load_model(model_path)
 
     parser = Parser(files[0], model)
-    print(parser.parse())
+    for res in parser.parse():
+        print(res)
 

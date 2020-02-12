@@ -1,7 +1,7 @@
 from collections import Counter
-from typing import cast
 
-from components.cell_labeling.cell_compact import CellTagType, CellCompact, ContentType
+from components.cell_labeling.cell_compact import CellTagType, ContentType
+from components.cell_labeling.cell_extended import is_cell_empty
 from components.extract_column.column import Column
 from components.parse_files.metadata import ColumnMetaData
 
@@ -74,187 +74,88 @@ class ExtractHelper:
     def remove_empty_columns(columns):
         def remove_col(col):
             result = True
-            for cell in col:
+            for cell in col.content_cells:
                 if cell.content_type == ContentType.STRING:
-                    if cell.content != "":
+                    if is_cell_empty(cell.content):
                         result = False
+                    else:
+                        result = True
+                        break
                 elif cell.content_type == ContentType.NUMERIC:
-                    result = False
+                    result = True
+                    break
             return result
-        return filter(remove_col, columns)
 
+        return filter(remove_col, columns)
 
     @staticmethod
     def extract_columns(data, metadata: ColumnMetaData):
         columns = []
-        prev_ch = set()
-        prev_ds = set()
-        current_column = None
-        for col_idx, row_idx, labeled_cell in ExtractHelper.iterator(data):
-            current_cell = cast(CellCompact, labeled_cell.cell)
-            current_tag = labeled_cell.tag
-            if current_tag == CellTagType.CH:
-                if current_cell.location in prev_ch:
-                    continue
-                # removed detection for repeated CH cells
-                # removed detection for un-named/empty CH cells
-                if current_column is None:
-                    current_column = Column()
-                    current_column.metadata = metadata
-                    current_column.header_cells.append(current_cell)
-                dsSet = False
-                deSet = False
-                dcSet = False
-                tryingToSetCHafterDS_DC_DE = False
-                tryingToSetDSafterDS_DC_DE = False
-                repeatingColumn = False
-                ndcReached = False
-                max_row_len = len(data[col_idx])
-                row_iterator = ExtractHelper.row_iterator(data, col_idx, row_idx)
-                j = row_idx
-                while j < max_row_len and not deSet:
-                    try:
-                        current_row_labeled_cell = next(row_iterator)
-                    except StopIteration:
-                        break
-                    current_row_cell = cast(CellCompact, current_row_labeled_cell.cell)
-                    current_row_tag = current_row_labeled_cell.tag
-                    if current_row_tag == CellTagType.CH:
-                        if dsSet or dcSet or deSet:
-                            actual_tag = ExtractHelper.check_left_and_right(data, col_idx, row_idx)
-                            if current_row_tag == actual_tag:
-                                tryingToSetCHafterDS_DC_DE = True
-                                # start new column
-                            else:
-                                data[col_idx][row_idx].tag = actual_tag
-                                continue
-                        else:
-                            if current_row_cell.location in prev_ch:
-                                repeatingColumn = True
-                            else:
-                                prev_ch.add(current_row_cell.location)
-                                current_column.header_cells.append(current_row_cell)
-                    elif current_row_tag == CellTagType.DS:
-                        if dsSet or dcSet or deSet:
-                            actual_tag = ExtractHelper.check_left_and_right(data, col_idx, row_idx)
-                            if current_row_tag == actual_tag:
-                                tryingToSetDSafterDS_DC_DE = True
-                            else:
-                                data[col_idx][row_idx].tag = actual_tag
-                                continue
-                        else:
-                            current_column.content_cells.append(current_row_cell)
-                            current_column.starting_cell = current_row_cell
-                            dsSet = True
-                    elif current_row_tag == CellTagType.DC:
-                        current_column.content_cells.append(current_row_cell)
-                        dcSet = True
-                    elif current_row_tag == CellTagType.DE:
-                        actual_tag = ExtractHelper.check_left_and_right(data, col_idx, row_idx)
-                        if current_row_tag == actual_tag:
-                            current_column.content_cells.append(current_row_cell)
-                            current_column.ending_cell = current_row_cell
-                            deSet = True
-                        else:
-                            data[col_idx][row_idx].tag = actual_tag
-                            continue
-                    elif current_row_tag == CellTagType.NDC:
-                        actual_tag = ExtractHelper.check_left_and_right(data, col_idx, row_idx)
-                        if current_row_tag == actual_tag:
-                            current_column.content_cells.append(current_row_cell)
-                            ndcReached = True
-                        else:
-                            data[col_idx][row_idx].tag = actual_tag
-                            continue
+        for col in data:
+            ch_start = -1
+            ch_end = -1
+            ds = -1
+            de_start = -1
+            de_end = -1
+            for i in range(len(col)):
+                labeled_cell = col[i]
+                tag = labeled_cell.tag
+                if tag == CellTagType.CH:
+                    if ch_start < 0:
+                        ch_start = i
                     else:
-                        raise RuntimeError("While loop should not access this part")
+                        if ch_end >= 0:
+                            ch_end, ch_start, de_end, de_start, ds, column = ExtractHelper.method_name(
+                                ch_end, ch_start,col,de_end, de_start,ds, i)
+                            column.metadata = metadata
+                            columns.append(column)
+                elif tag == CellTagType.DS:
+                    if ch_start >= 0 and ch_end < 0:
+                        ch_end = i - 1
+                    if ds < 0:
+                        # there can be only one ds cell
+                        ds = i
+                elif tag == CellTagType.DC or tag == CellTagType.NDC:
+                    if ch_start >= 0 and ch_end < 0:
+                        ch_end = i - 1
+                    if de_start >= 0:
+                        de_end = i - 1
+                        ch_end, ch_start, de_end, de_start, ds, column = ExtractHelper.method_name(
+                            ch_end, ch_start,col,de_end, de_start, ds,i)
+                        column.metadata = metadata
+                        columns.append(column)
+                    if tag == CellTagType.DC and ds < 0:
+                        # there can be only one ds cell
+                        # force dc to become ds
+                        ds = i
+                elif tag == CellTagType.DE:
+                    if ch_start >= 0 and ch_end < 0:
+                        ch_end = i - 1
+                    if de_start < 0:
+                        de_start = i
+            if de_start >= 0:
+                de_end = len(col) - 1
+                _, _, _, _, _, column = ExtractHelper.method_name(
+                    ch_end, ch_start, col,de_end, de_start, ds, de_end)
+                column.metadata = metadata
+                columns.append(column)
 
-                    if ndcReached or deSet:
-                        break
-                    if tryingToSetDSafterDS_DC_DE or tryingToSetCHafterDS_DC_DE:
-                        break
-                    if repeatingColumn:
-                        break
-                    j += 1
-                current_column.set_type()
-                columns.append(current_column)
-                current_column = None
-
-            elif current_tag == CellTagType.DS:
-                if current_cell.location in prev_ds:
-                    continue
-                if current_column is None:
-                    current_column = Column()
-                    current_column.metadata = metadata
-                    current_column.content_cells.append(current_cell)
-                    current_column.starting_cell = current_cell
-                dsSet = False
-                deSet = False
-                dcSet = False
-                tryingToSetCHafterDS_DC_DE = False
-                tryingToSetDSafterDS_DC_DE = False
-                ndcReached = False
-                row_iterator = ExtractHelper.row_iterator(data, col_idx, row_idx)
-                max_row_len = len(data[col_idx])
-                j = row_idx
-                while j < max_row_len and not deSet:
-                    current_row_labeled_cell = next(row_iterator)
-                    current_row_cell = cast(CellCompact, current_row_labeled_cell.cell)
-                    current_row_tag = current_row_labeled_cell.tag
-                    if current_row_tag == CellTagType.CH:
-                        actual_tag = ExtractHelper.check_left_and_right(data, col_idx, row_idx)
-                        if current_row_tag == actual_tag:
-                            tryingToSetCHafterDS_DC_DE = True
-                            # start new column
-                        else:
-                            data[col_idx][row_idx].tag = actual_tag
-                            continue
-                    elif current_row_tag == CellTagType.DS:
-                        if dsSet or dcSet or deSet:
-                            actual_tag = ExtractHelper.check_left_and_right(data, col_idx, row_idx)
-                            if current_row_tag == actual_tag:
-                                tryingToSetDSafterDS_DC_DE = True
-                            else:
-                                data[col_idx][row_idx].tag = actual_tag
-                                continue
-                        else:
-                            current_column.content_cells.append(current_row_cell)
-                            if not dsSet:
-                                current_column.starting_cell = current_row_cell
-                            dsSet = True
-                            prev_ds.add(current_row_cell.location)
-                    elif current_row_tag == CellTagType.DC:
-                        current_column.content_cells.append(current_row_cell)
-                        dcSet = True
-                    elif current_row_tag == CellTagType.DE:
-                        actual_tag = ExtractHelper.check_left_and_right(data, col_idx, row_idx)
-                        if current_row_tag == actual_tag:
-                            current_column.content_cells.append(current_row_cell)
-                            current_column.ending_cell = current_row_cell
-                            deSet = True
-                        else:
-                            data[col_idx][row_idx].tag = actual_tag
-                            continue
-                    elif current_row_tag == CellTagType.NDC:
-                        actual_tag = ExtractHelper.check_left_and_right(data, col_idx, row_idx)
-                        if current_row_tag == actual_tag:
-                            current_column.content_cells.append(current_row_cell)
-                            ndcReached = True
-                        else:
-                            data[col_idx][row_idx].tag = actual_tag
-                            continue
-                    else:
-                        raise RuntimeError("While loop should not access this part")
-
-                    if ndcReached or deSet:
-                        break
-                    if tryingToSetDSafterDS_DC_DE or tryingToSetCHafterDS_DC_DE:
-                        break
-                    j += 1
-                current_column.set_type()
-                columns.append(current_column)
-                current_column = None
         return ExtractHelper.remove_empty_columns(columns)
 
-
-
+    @staticmethod
+    def method_name(ch_end, ch_start, col, de_end, de_start, ds, i):
+        column = Column()
+        for j in range(ch_start, ch_end + 1):
+            column.header_cells.append(col[j].cell)
+        for j in range(ch_end + 1, i):
+            column.content_cells.append(col[j].cell)
+        if ds >= 0:
+            column.starting_cell = col[ds].cell
+        if de_end >= 0:
+            column.ending_cell = col[de_end].cell
+        ch_start = -1
+        ch_end = -1
+        ds = -1
+        de_start = -1
+        de_end = -1
+        return ch_end, ch_start, de_end, de_start, ds, column

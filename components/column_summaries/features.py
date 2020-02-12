@@ -1,10 +1,12 @@
-from components.extract_column.column import Column
-from components.cell_labeling.cell_compact import CellCompact, ContentType, CellTagType
-from components.parse_files.metadata import ColumnMetaData, FileMetaData
+from collections import Counter
+
+import numpy as np
 from bloomfilter import BloomFilter
 
-from collections import Counter
-import numpy as np
+from components.cell_labeling.cell_compact import ContentType
+from components.extract_column.column import Column
+from components.parse_files.metadata import FileMetaData
+
 
 class Features:
     def __init__(self, column: Column, file_metadata: FileMetaData):
@@ -25,7 +27,7 @@ class Features:
         self.common_frequencies1 = 0
         self.unique_num = 0
         self.null_num = 0
-        #metadata:
+        # metadata:
         self.column_metadata = column.metadata
         self.file_metadata = file_metadata
 

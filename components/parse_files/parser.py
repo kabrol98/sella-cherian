@@ -1,23 +1,19 @@
 from os import path
-from typing import List
 
-import openpyxl as xl
-import keras
 import numpy as np
+import openpyxl as xl
 
 from components.cell_labeling.cell_compact import CellTagType
 from components.cell_labeling.cell_extended import CellExtended
-from components.extract_column.column import Column
 from components.extract_column.extract_helper import ExtractHelper
 from components.parse_files.metadata import ColumnMetaData
-from components.utils.test import test_dump, test_exit
 
-from components.utils.test import get_tag_type_name
 
 class CellLabeled:
     def __init__(self, tag, cell):
         self.tag = tag
         self.cell = cell
+
 
 class Parser:
     def __init__(self, file_path: str, model):
@@ -80,11 +76,11 @@ class Parser:
             col_result = []
             for cell in col:
                 col_result.append(cell.get_feature_vector() + 1)
-            classification = self.model.predict([col_result], batch_size = 1)
+            classification = self.model.predict([col_result], batch_size=1)
             tagged_result = []
             # print(classification)
             for idx, cell in enumerate(col):
-                label = int(np.argmax(classification[idx][0][1:])) # the first tag should not exist
+                label = int(np.argmax(classification[idx][0][1:]))  # the first tag should not exist
                 # print(label)
                 # test_exit()
                 if label < 0 or label > 5:
@@ -135,26 +131,26 @@ class Parser:
                     if virtual_i + 1 < max_row_num:
                         bottom_cell = virtual_worksheet[virtual_j][virtual_i + 1]
                         if bottom_cell is None:
-                            bottom_cell = CellExtended(worksheet.cell(row=i+1, column=j))
+                            bottom_cell = CellExtended(worksheet.cell(row=i + 1, column=j))
                             virtual_worksheet[virtual_j][virtual_i + 1] = bottom_cell
                         cell.apply_below_neighbor(bottom_cell)
                         bottom_cell.apply_above_neighbor(cell)
                     else:
                         cell.apply_below_neighbor(None)
                     if virtual_j - 1 >= 0:
-                        left_cell = virtual_worksheet[virtual_j-1][virtual_i]
+                        left_cell = virtual_worksheet[virtual_j - 1][virtual_i]
                         if left_cell is None:
-                            left_cell = CellExtended(worksheet.cell(row=i, column=j-1))
+                            left_cell = CellExtended(worksheet.cell(row=i, column=j - 1))
                             virtual_worksheet[virtual_j - 1][virtual_i] = left_cell
                         cell.apply_left_neighbor(left_cell)
                         left_cell.apply_right_neighbor(cell)
                     else:
                         cell.apply_left_neighbor(None)
                     if virtual_j + 1 < max_col_num:
-                        right_cell = virtual_worksheet[virtual_j+1][virtual_i]
+                        right_cell = virtual_worksheet[virtual_j + 1][virtual_i]
                         if right_cell is None:
-                            right_cell = CellExtended(worksheet.cell(row=i, column=j+1))
-                            virtual_worksheet[virtual_j+1][virtual_i] = right_cell
+                            right_cell = CellExtended(worksheet.cell(row=i, column=j + 1))
+                            virtual_worksheet[virtual_j + 1][virtual_i] = right_cell
                         cell.apply_right_neighbor(right_cell)
                         right_cell.apply_left_neighbor(cell)
                     else:
@@ -162,7 +158,6 @@ class Parser:
             parsed_cells = self.classify_cells(virtual_worksheet)
             column_metadata = ColumnMetaData(file_name=self.file_path, sheet_name=sheet_name)
             for new_col in ExtractHelper.extract_columns(parsed_cells, column_metadata):
+                new_col.set_type()
                 columns.append(new_col)
         return columns
-
-

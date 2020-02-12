@@ -1,7 +1,7 @@
-from collections import defaultdict, namedtuple
-from typing import List, cast
+from collections import defaultdict
+from typing import List
 
-from components.cell_labeling.cell_compact import CellCompact, ContentType, CellTagType
+from components.cell_labeling.cell_compact import CellCompact, ContentType
 from components.parse_files.metadata import ColumnMetaData
 
 
@@ -41,12 +41,8 @@ class Column:
         return False
 
     def set_type(self):
-        for cel in self.content_cells:
-            print(cel)
-        print("\n\n")
-        exit(1)
         if len(self.content_cells) == 0:
-            self.type = None # blank column does not have any content
+            self.type = None  # blank column does not have any content
             return
         all_counts = defaultdict(int)
         for cell in self.content_cells:
@@ -72,5 +68,21 @@ class Column:
             for cell in failed_cells:
                 self.convert_cell_type(cell, ContentType.NULL)
 
+    def remove_empty_cells(self):
+        # todo
+        pass
 
+    def __str__(self):
+        nl = '\t\t\t\n'
+        return f'''
+{{
+    type: {self.type},
+    header: [
+            {nl.join(map(str, self.header_cells))}
+    ],
+    contents: [
+            {nl.join(map(str, self.content_cells))}
+    ]
+}}
+'''
 
