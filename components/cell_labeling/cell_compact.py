@@ -1,10 +1,10 @@
 from collections import namedtuple
-from enum import Enum
+from enum import IntEnum
 from typing import Any
 
 Location = namedtuple('Location', ['col', 'row'])
 
-class CellTagType(Enum):
+class CellTagType(IntEnum):
     CH = 0  # Column Header
     DC = 1  # Data Continue
     DE = 2  # Data End
@@ -12,7 +12,7 @@ class CellTagType(Enum):
     NDC = 4  # Not a Data Cell
 
 
-class ContentType(Enum):
+class ContentType(IntEnum):
     NUMERIC = 0
     STRING = 1
     NULL = 2

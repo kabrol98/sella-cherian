@@ -1,8 +1,6 @@
 from collections import defaultdict, namedtuple
 from typing import List, cast
 
-CellLabeled = namedtuple('CellLabeled', ['tag', 'cell'])
-
 from components.cell_labeling.cell_compact import CellCompact, ContentType, CellTagType
 from components.parse_files.metadata import ColumnMetaData
 
@@ -43,6 +41,10 @@ class Column:
         return False
 
     def set_type(self):
+        for cel in self.content_cells:
+            print(cel)
+        print("\n\n")
+        exit(1)
         if len(self.content_cells) == 0:
             self.type = None # blank column does not have any content
             return

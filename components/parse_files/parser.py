@@ -7,13 +7,17 @@ import numpy as np
 
 from components.cell_labeling.cell_compact import CellTagType
 from components.cell_labeling.cell_extended import CellExtended
-from components.extract_column.column import Column, CellLabeled
+from components.extract_column.column import Column
 from components.extract_column.extract_helper import ExtractHelper
 from components.parse_files.metadata import ColumnMetaData
 from components.utils.test import test_dump, test_exit
 
 from components.utils.test import get_tag_type_name
 
+class CellLabeled:
+    def __init__(self, tag, cell):
+        self.tag = tag
+        self.cell = cell
 
 class Parser:
     def __init__(self, file_path: str, model):
@@ -32,6 +36,44 @@ class Parser:
             return False
         return True
 
+    def set_rules(self, cells):
+        result = []
+        for col in cells:
+            first_cell = None
+            for d in col:
+                if not d.cell.state["is_blank"]:
+                    first_cell = d
+                    break
+            if first_cell is None:
+                result.append(list(
+                    map(lambda temp: CellLabeled(tag=CellTagType.NDC, cell=temp.cell.compact_cell), col)
+                ))
+                continue
+            else:
+                if first_cell.tag == CellTagType.CH:
+                    pass
+                else:
+                    first_cell.tag = CellTagType.DS
+            last_cell = None
+            for d in reversed(col):
+                if not d.cell.state["is_blank"]:
+                    last_cell = d
+                    break
+            if last_cell is None:
+                raise Exception("last cell must not be None after checking first cell")
+            elif last_cell == first_cell:
+                pass
+            else:
+                cell_tag = last_cell.tag
+                if cell_tag == CellTagType.DE or cell_tag == CellTagType.CH:
+                    pass
+                else:
+                    last_cell.tag = CellTagType.DE
+            result.append(list(
+                map(lambda temp: CellLabeled(tag=temp.tag, cell=temp.cell.compact_cell), col)
+            ))
+        return result
+
     def classify_cells(self, cells):
         result = []
         for col in cells:
@@ -47,13 +89,15 @@ class Parser:
                 # test_exit()
                 if label < 0 or label > 5:
                     raise RuntimeError("Invalid Label")
-                temp_dict = CellLabeled(tag=label, cell=cell.compact_cell)
-                if cell.compact_cell is not None:
-                    print(get_tag_type_name(temp_dict.tag), temp_dict.cell, cell.get_feature_vector())
+                temp_dict = CellLabeled(tag=label, cell=cell)
+                # if cell.compact_cell is not None:
+                #     print(get_tag_type_name(temp_dict.tag), temp_dict.cell.compact_cell, cell.get_feature_vector())
+                # print(label)
                 tagged_result.append(temp_dict)
             result.append(tagged_result)
-        test_exit()
-        return result
+        # test_exit()
+        print('\n\n')
+        return self.set_rules(result)
 
     def parse(self):
         result = self.file_validity_check()

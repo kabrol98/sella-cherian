@@ -113,7 +113,10 @@ class ExtractHelper:
                 row_iterator = ExtractHelper.row_iterator(data, col_idx, row_idx)
                 j = row_idx
                 while j < max_row_len and not deSet:
-                    current_row_labeled_cell = next(row_iterator)
+                    try:
+                        current_row_labeled_cell = next(row_iterator)
+                    except StopIteration:
+                        break
                     current_row_cell = cast(CellCompact, current_row_labeled_cell.cell)
                     current_row_tag = current_row_labeled_cell.tag
                     if current_row_tag == CellTagType.CH:
