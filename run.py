@@ -7,6 +7,8 @@ from components.parse_files.parser import Parser
 from components.utils.test import SimpleTest
 from components.column_summaries.features import Features
 
+import pickle
+
 if __name__ == '__main__':
     with SimpleTest():
         files = ["data_corpus/00sumdat_copy.xlsx", "data_corpus/1-1-10Na-Kinetic Curves.xlsx", "data_corpus/Aexperiment.xlsx"]
@@ -15,9 +17,12 @@ if __name__ == '__main__':
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
         model = keras.models.load_model(model_path)
 
-        parser = Parser(files[1], model)
+        parser = Parser(files[0], model)
+        results = []
         for res in parser.parse():
+            results.append(res)
             print(res)
+        pickle.dump(results, open('columns.p', "wb"))
             # feature = Features(res, None)
             # print(feature.data_type, feature.value_range, feature.max, feature.min, feature.mean,
             #         feature.std, feature.mask, feature.common_values0, feature.common_frequencies0,
