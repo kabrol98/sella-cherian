@@ -12,8 +12,24 @@ class FileMetaData:
         self.date_created: int = file_stats.st_ctime
         self.date_modified: int = file_stats.st_mtime
 
+    def __str__(self):
+        return f'''
+file_path: {self.file_path},
+file_name: {self.file_name},
+file_owner: {self.file_owner},
+file_size: {self.file_size}
+date_created: {self.date_created}
+date_modified: {self.date_modified}
+'''
+
 
 class ColumnMetaData:
     def __init__(self, file_name: str, sheet_name: str):
         self.file_name = file_name
         self.sheet_name = sheet_name
+
+    def __str__(self):
+        return f'''
+file_name: {self.file_name},
+sheet_name: {self.sheet_name},
+'''
