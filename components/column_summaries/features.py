@@ -1,7 +1,7 @@
 from collections import Counter
 
 import numpy as np
-from bloomfilter import BloomFilter
+from components.column_summaries.bloomfilter import BloomFilter
 
 from components.cell_labeling.cell_compact import ContentType
 from components.extract_column.column import Column
@@ -57,6 +57,7 @@ class Features:
             self.mean = np.mean(none_null_cell_values)
             self.std = np.std(none_null_cell_values)
         else:
+            print(column.type)
             bloomfilter = BloomFilter(none_null_cell_values, 0.01)
             self.mask = bloomfilter.intMask()
         self.unique_num = len(np.unique(np.array(none_null_cell_values)))
@@ -70,5 +71,3 @@ class Features:
             frequent_one = Counter(none_null_cell_values).most_common(1)
             self.common_values0 = frequent_one[0][0]
             self.common_frequencies0 = frequent_one[0][1]
-        else:
-            print("column_summaries/features: most likely something wrong with cells value type")
