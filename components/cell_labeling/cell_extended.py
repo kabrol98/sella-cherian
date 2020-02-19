@@ -166,9 +166,9 @@ class CellExtended:
         if isinstance(self.raw_cell.value, str):
             return self.raw_cell.value.isalnum()
         elif isinstance(self.raw_cell.value, int):
-            return True
+            return False
         elif isinstance(self.raw_cell.value, float):
-            return True
+            return False
         else:
             return False
 

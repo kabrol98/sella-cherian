@@ -1,4 +1,5 @@
 import os
+from os import path
 
 import numpy as np
 import pandas as pd
@@ -10,10 +11,11 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential, load_model
-from keras.layers import Dense, LSTM, InputLayer, Bidirectional, TimeDistributed, Embedding, Activation, concatenate
+from keras.layers import Dense, LSTM, InputLayer, Bidirectional, TimeDistributed, Embedding, Activation, concatenate, \
+    Flatten
 from keras.optimizers import Adam
 from keras.utils import to_categorical, plot_model
-from keras import backend as K, Model
+from keras import backend as K, Model, Input
 
 import pickle
 
@@ -26,11 +28,20 @@ data_col_names = ["is_blank", "bold_font","below_blank","has_merge_cell","above_
 
 FEATURE_LENGTH = len(data_col_names)
 
-all_cols = {}
-all_rows = {}
+vertial_model = load_model("vertical_lstm.h5")
+vertial_model.name = 'vertial_model'
+horizontal_model = load_model("horizontal_lstm.h5")
+horizontal_model.name = 'horizontal_model'
+
+
+
 
 def get_context(cell_name, df):
-    if not all_cols or not all_rows:
+    all_cols_predict = {}
+    all_rows_predict = {}
+    if not path.exists("all_cols_predict.pickle"):
+        all_cols = {}
+        all_rows = {}
         for idx, row in df.iterrows():
             string = row["file_name"]
             column_name = string.split("[")[0] + string.split(",")[1]
@@ -44,10 +55,30 @@ def get_context(cell_name, df):
                 all_rows[row_name] = [cell]
             else:
                 all_rows[row_name].append(cell)
+        max_len_vertical = -1
+        max_len_horizontal = -1
+        for col_name, col in all_cols.items():
+            max_len_vertical = max(len(col), max_len_vertical)
+        for row_name, row in all_rows.items():
+            max_len_horizontal = max(len(row), max_len_horizontal)
+        for col_name, col in all_cols.items():
+            while len(col) < max_len_vertical:
+                col.append([PAD_CONTENT] * FEATURE_LENGTH)
+            all_cols_predict[col_name] = np.squeeze(vertial_model.predict(np.array([col])), axis=0)
+        for row_name, row in all_rows.items():
+            while len(row) < max_len_horizontal:
+                row.append([PAD_CONTENT] * FEATURE_LENGTH)
+            all_rows_predict[row_name] = np.squeeze(horizontal_model.predict(np.array([row])), axis=0)
+        pickle.dump(all_cols_predict, open('all_cols_predict.pickle', 'wb'))
+        pickle.dump(all_rows_predict, open('all_rows_predict.pickle', 'wb'))
+    else:
+        all_cols_predict = pickle.load(open('all_cols_predict.pickle', 'rb'))
+        all_rows_predict = pickle.load(open('all_rows_predict.pickle', 'rb'))
+
 
     cell_col_name = cell_name.split("[")[0] + cell_name.split(",")[1]
     cell_row_name = cell_name.split("[")[0] + cell_name.split(",")[0]
-    return all_cols[cell_col_name], all_rows[cell_row_name]
+    return all_cols_predict[cell_col_name], all_rows_predict[cell_row_name]
 
 all_data = pd.read_csv(os.path.abspath(os.path.join(os.path.dirname(__file__), "newTraining.data")), names=all_col_names, header=None, delimiter=r"\s+")
 
@@ -56,59 +87,44 @@ all_data.select_dtypes(exclude=['object', 'datetime']) + 1
 all_x = []
 all_y = []
 
+if not path.exists("all_x.pickle"):
+    for row_idx, row in all_data.iterrows():
+        predicted_col, predicted_row = get_context(row["file_name"], all_data)
+        label = row["label"]
+        all_x.append(np.concatenate((predicted_col, predicted_row)))
+        all_y.append(label)
 
-for row_idx, row in all_data.iterrows():
-    vertical_context, horizontal_context = get_context(row["file_name"], all_data)
-    label = row["label"]
-    all_x.append([vertical_context, horizontal_context])
-    all_y.append(label)
 
-# pickle.dump(all_x, open('all_x.pickle', 'wb'))
-# pickle.dump(all_y, open('all_y.pickle', 'wb'))
+    all_x = np.array(all_x)
 
-max_len_vertical = -1
-max_len_horizontal = -1
-for vertical_context, horizontal_context in all_x:
-    max_len_vertical = max(len(vertical_context), max_len_vertical)
-    max_len_horizontal = max(len(horizontal_context), max_len_horizontal)
-for vertical_context, horizontal_context in all_x:
-    while len(vertical_context) < max_len_vertical:
-        vertical_context.append([PAD_CONTENT] * FEATURE_LENGTH)
-    while len(horizontal_context) < max_len_horizontal:
-        horizontal_context.append([PAD_CONTENT] * FEATURE_LENGTH)
+    encoder = LabelEncoder()
+    encoder.fit(all_y)
+    all_y = encoder.transform(all_y)
 
-all_x = np.array(all_x)
+    pickle.dump(all_x, open("all_x.pickle", "wb"))
+    pickle.dump(all_y, open("all_y.pickle", "wb"))
+else:
+    all_x = pickle.load(open("all_x.pickle", "rb"))
+    all_y = pickle.load(open("all_y.pickle", "rb"))
 
-encoder = LabelEncoder()
-encoder.fit(all_y)
-all_y = encoder.transform(all_y)
+print(all_x.shape)
 
 x_train, x_test, y_train, y_test = train_test_split(all_x, all_y, test_size=0.2)
 
 CLASS_NUM = 5+1
 EPOCHS = 20
 
-vertial_model = load_model("vertical_lstm.h5")
-vertial_model.name = 'vertial_model'
-horizontal_model = load_model("horizontal_lstm.h5")
-horizontal_model.name = 'horizontal_model'
-
 models = [vertial_model, horizontal_model]
 for model in [vertial_model, horizontal_model]:
     for layer in model.layers:
-        print(layer.name)
         layer.trainable = False
         layer.name = 'ensemble_' + layer.name + '_rand_' + str(random.randint(1,1000))
-        print(layer.name)
-    print(model.name)
 
-ensemble_visible = [model.input for model in models]
-# concatenate merge output from each model
-ensemble_outputs = [model.output for model in models]
-merge = concatenate(ensemble_outputs)
-hidden = Dense(10, activation='relu')(merge)
-output = Dense(3, activation='softmax')(hidden)
-model = Model(inputs=ensemble_visible, outputs=output)
+input_layer = Input((140,6))
+flat = Flatten()(input_layer)
+hidden = Dense(10, activation='relu')(flat)
+output = Dense(6, activation='softmax')(hidden)
+model = Model(inputs=input_layer, outputs=output)
 # plot graph of ensemble
 plot_model(model, show_shapes=True, to_file='model_graph.png')
 # compile

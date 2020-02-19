@@ -20,12 +20,12 @@ if __name__ == '__main__':
             "data_corpus/metabolite data.xlsx",
             "data_corpus/Test 1.xlsx"
         ]
-        model_path = "models/NeuralNetwork/lstm.h5"
+        model_path = "models/NeuralNetwork/vertical_lstm.h5"
 
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
         model = keras.models.load_model(model_path)
 
-        parser = Parser(files[6], model)
+        parser = Parser(files[4], model)
         results = []
         for res in parser.parse():
             results.append(res)

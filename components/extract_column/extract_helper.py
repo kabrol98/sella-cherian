@@ -91,7 +91,8 @@ class ExtractHelper:
     @staticmethod
     def extract_columns(data, metadata: ColumnMetaData):
         columns = []
-        for col in data:
+        for j in range(len(data)):
+            col = data[j]
             ch_start = -1
             ch_end = -1
             ds = -1

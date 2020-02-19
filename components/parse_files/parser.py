@@ -1,9 +1,11 @@
+import math
+from collections import Counter
 from os import path
 
 import numpy as np
 import openpyxl as xl
 
-from components.cell_labeling.cell_compact import CellTagType
+from components.cell_labeling.cell_compact import CellTagType, ContentType
 from components.cell_labeling.cell_extended import CellExtended
 from components.extract_column.extract_helper import ExtractHelper
 from components.parse_files.metadata import ColumnMetaData
@@ -32,6 +34,7 @@ class Parser:
             return False
         return True
 
+
     def set_rules(self, cells):
         result = []
         for col in cells:
@@ -41,9 +44,8 @@ class Parser:
                     first_cell = d
                     break
             if first_cell is None:
-                result.append(list(
-                    map(lambda temp: CellLabeled(tag=CellTagType.NDC, cell=temp.cell.compact_cell), col)
-                ))
+                for d in col:
+                    d.tag = CellTagType.NDC
                 continue
             else:
                 if first_cell.tag == CellTagType.CH:
@@ -65,10 +67,55 @@ class Parser:
                     pass
                 else:
                     last_cell.tag = CellTagType.DE
+
+        last_empty_row = -math.inf
+        last_num_row = -math.inf
+        cells_t = [list(x) for x in zip(*cells)]
+        for i in range(len(cells_t)):
+            row = cells_t[i]
+            num_num_cells = 0
+            tag_num_cells = []
+            num_string_cells = 0
+            num_blank_cells = 0
+            for cell_labelled in row:
+                if cell_labelled.cell.compact_cell.content_type == ContentType.NUMERIC:
+                    num_num_cells += 1
+                    if cell_labelled.tag != CellTagType.NDC:
+                        tag_num_cells.append(cell_labelled.tag)
+                elif cell_labelled.cell.compact_cell.content_type == ContentType.STRING:
+                    num_string_cells += 1
+                else:
+                    num_blank_cells += 1
+            if num_blank_cells == len(row):
+                last_empty_row = i
+                # assume that a blank line separates two tables
+                for cell_labelled in row:
+                    cell_labelled.tag = CellTagType.DE
+            elif num_num_cells > 0:
+                most_common_tag = Counter(tag_num_cells).most_common(1)[0][0]
+                for cell_labelled in row:
+                    if cell_labelled.cell.compact_cell.content_type == ContentType.STRING:
+                        cell_labelled.tag = most_common_tag
+                last_num_row = i
+            elif num_num_cells == 0:
+                if i == 0 or last_empty_row == i-1 or last_num_row == i - 1:
+                    for cell_labelled in row:
+                        if cell_labelled.cell.compact_cell.content_type == ContentType.STRING:
+                            cell_labelled.tag = CellTagType.CH
+                    if last_num_row == i - 1:
+                        # assume that numbers cannot be headers
+                        for cell_labelled in cells_t[i-1]:
+                            cell_labelled.tag = CellTagType.DE
+                else:
+                    for cell_labelled in cells_t[i - 1]:
+                        cell_labelled.tag = CellTagType.DC
+
+        for col in cells:
             result.append(list(
                 map(lambda temp: CellLabeled(tag=temp.tag, cell=temp.cell.compact_cell), col)
             ))
         return result
+
 
     def classify_cells(self, cells):
         result = []
