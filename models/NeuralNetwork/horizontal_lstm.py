@@ -60,29 +60,24 @@ all_data = pd.read_csv(os.path.abspath(os.path.join(os.path.dirname(__file__), "
 
 all_data.select_dtypes(exclude=['object', 'datetime']) + 1
 
-vec_list = []
-for _, row in all_data[data_col_names].iterrows():
-    vec_list.append(tuple(row.values.tolist()))
-vec_representation = dict([(y,x+1) for x,y in enumerate(sorted(set(vec_list)))])
 
-
-columns_set = OrderedDict()
+rows_set = OrderedDict()
 for idx, row in all_data.iterrows():
     string = row["file_name"]
-    column_name = string.split("[")[0] + string.split(",")[1]
-    if column_name in columns_set:
-        columns_set[column_name].append(idx)
+    row_name = string.split("[")[0] + string.split(",")[0]
+    if row_name in rows_set:
+        rows_set[row_name].append(idx)
     else:
-        columns_set[column_name] = [idx]
+        rows_set[row_name] = [idx]
 
-column_names = columns_set.keys()
+row_names = rows_set.keys()
 # train_column_names = column_names
-train_column_names = random.sample(column_names, math.floor(len(column_names) * 0.8))
-test_column_names = [name for name in column_names if name not in train_column_names]
+train_row_names = random.sample(row_names, math.floor(len(row_names) * 0.8))
+test_row_names = [name for name in row_names if name not in train_row_names]
 
 
-x_train = [get_lists(all_data, columns_set[name]) for name in train_column_names]
-x_test = [get_lists(all_data, columns_set[name]) for name in test_column_names]
+x_train = [get_lists(all_data, rows_set[name]) for name in train_row_names]
+x_test = [get_lists(all_data, rows_set[name]) for name in test_row_names]
 max_len = 0
 for l in x_train:
     if len(l) > max_len:
@@ -102,12 +97,11 @@ x_test = np.array(x_test)
 encoder = LabelEncoder()
 y_train_temp = []
 encoder_learner = []
-for name in train_column_names:
-    res = get_lists(all_data, columns_set[name], True)
+for name in train_row_names:
+    res = get_lists(all_data, rows_set[name], True)
     y_train_temp.append(res)
     encoder_learner.extend(res)
 encoder.fit(encoder_learner)
-# print(encoder.classes_)
 # ['CH' 'DC' 'DE' 'DS' 'NDC']
 y_train = []
 for y in y_train_temp:
@@ -131,31 +125,30 @@ sample_weights = vector_func(y_train)
 # print(y_train)
 # exit(1)
 y_test = []
-for name in test_column_names:
-    res = (encoder.transform(get_lists(all_data, columns_set[name], True)) + 1).tolist()
+for name in test_row_names:
+    res = (encoder.transform(get_lists(all_data, rows_set[name], True)) + 1).tolist()
     while len(res) < max_len:
         res.append(PAD_TAG)
     y_test.append(res)
 y_test = np.array(y_test)
 
 CLASS_NUM = 5 + 1
-VOCAB_SIZE = len(vec_representation) + 1
 BATCH_SIZE = 10
 EPOCHS = 20
 DROPOUT = 0.1
 
 model = Sequential()
 # model.add(InputLayer(input_shape=(max_len, FEATURE_LENGTH)))
-model.add(Bidirectional(LSTM(12, return_sequences=True, dropout=DROPOUT, recurrent_dropout=DROPOUT), input_shape=(None, FEATURE_LENGTH)))
-model.add(TimeDistributed(Dense(CLASS_NUM)))
-model.add(Activation('softmax'))
+model.add(Bidirectional(LSTM(12, return_sequences=True, dropout=DROPOUT, recurrent_dropout=DROPOUT), input_shape=(None, FEATURE_LENGTH), name="horizontal_bidirectional"))
+model.add(Dense(CLASS_NUM, name="horizontal_dense"))
+model.add(Activation('softmax', name="horizontal_activation"))
 model.compile(loss='categorical_crossentropy',
               optimizer=Adam(),
               sample_weight_mode="temporal",
               metrics=['accuracy'])#, ignore_accuracy_of_class(PAD_TAG)])
 model.summary()
 model.fit(x_train, to_categorical(y_train, CLASS_NUM), batch_size=BATCH_SIZE, epochs=EPOCHS, validation_split=0.2, verbose=2, sample_weight=sample_weights)
-model.save(os.path.abspath(os.path.join(os.path.dirname(__file__), "lstm.h5")))
+model.save(os.path.abspath(os.path.join(os.path.dirname(__file__), "horizontal_lstm.h5")))
 scores = model.evaluate(x_test, to_categorical(y_test, CLASS_NUM))
 predictions = model.predict(x_test)
 print(confusion_matrix(y_test.flatten(), y_pred=np.apply_along_axis(lambda arr: np.argmax(arr), 1, predictions.reshape(-1, predictions.shape[-1]))))

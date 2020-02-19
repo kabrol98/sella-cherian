@@ -158,7 +158,9 @@ class CellExtended:
         self.state["below_blank"] = bottom_cell.state["is_blank"] if bottom_cell is not None else True
 
     def is_alphabet(self):
-        return self.raw_cell.value.isalpha()
+        if isinstance(self.raw_cell.value, str):
+            return self.raw_cell.value.isalpha()
+        return False
 
     def is_alphanumeric(self):
         if isinstance(self.raw_cell.value, str):
