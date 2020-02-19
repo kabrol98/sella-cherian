@@ -19,11 +19,12 @@ match_whitespaces_only = re.compile("^[\s]+$")
 def is_cell_empty(value):
     return value in default_null_values or re.match(match_whitespaces_only, value)
 
+
 class CellExtended:
 
     @staticmethod
     def get_ndc_cell():
-        cell = CellExtended()
+        cell = MockCellExtended()
         state = cell.state
         state["is_num"] = F
         state["is_blank"] = T
@@ -191,3 +192,11 @@ class CellExtended:
         values = self.state.values()
         result = np.array([1 if x == T else 0 for x in values])
         return result.reshape(1, len(result))
+
+
+class MockCellExtended(CellExtended):
+    def __init__(self, raw_cell: Cell = None):
+        super().__init__(raw_cell)
+
+    def is_alphanumeric(self):
+        return False

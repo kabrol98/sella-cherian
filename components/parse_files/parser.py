@@ -86,13 +86,14 @@ class Parser:
                 if label < 0 or label > 5:
                     raise RuntimeError("Invalid Label")
                 temp_dict = CellLabeled(tag=label, cell=cell)
-                # if cell.compact_cell is not None:
-                #     print(get_tag_type_name(temp_dict.tag), temp_dict.cell.compact_cell, cell.get_feature_vector())
+                if cell.compact_cell is not None:
+                    # ['CH' 'DC' 'DE' 'DS' 'NDC']
+                    print(temp_dict.tag, temp_dict.cell.compact_cell, cell.get_feature_vector())
                 # print(label)
                 tagged_result.append(temp_dict)
             result.append(tagged_result)
         # test_exit()
-        print('\n\n')
+        print("\n\n")
         return self.set_rules(result)
 
     def parse(self):
