@@ -103,7 +103,8 @@ class ExtractHelper:
             if cell_labeled.tag == CellTagType.CH and cell.content_type != ContentType.NULL and cell.content_type is not None:
                 column.header_cells.append(cell)
                 continue
-            column.content_cells.append(cell)
+            if cell.content_type != ContentType.NULL and cell.content_type is not None:
+                column.content_cells.append(cell)
             if cell_labeled.tag == CellTagType.DS and column.starting_cell is None:
                 column.starting_cell = cell
             if cell_labeled.tag == CellTagType.DE:
