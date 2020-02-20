@@ -29,28 +29,18 @@ class ExtractHelper:
     @staticmethod
     def remove_empty_columns(columns):
         def remove_col(col):
-            result = True
-            for cell in col.content_cells:
-                if cell.content_type == ContentType.STRING:
-                    if is_cell_empty(str(cell.content)):
-                        result = False
-                    else:
-                        result = True
-                        break
-                elif cell.content_type == ContentType.NUMERIC:
-                    result = True
-                    break
-            return result
+            # includes col with only headers
+            return col.type == ContentType.NULL or col.type is None
 
         return filter(remove_col, columns)
 
     @staticmethod
     def extract_columns(data, metadata: ColumnMetaData):
+        # this method will exclude columns with single DC cells
         columns = []
         for j in range(len(data)):
             col = data[j]
             last_start_idx = None
-            last_tag_idx = None
             last_tag = None
             non_empty_index = None
             for i in range(len(col)):
@@ -61,14 +51,9 @@ class ExtractHelper:
                 if tag == CellTagType.CH:
                     if last_start_idx is None:
                         last_start_idx = i
-                    if last_tag == CellTagType.CH:
-                        if last_tag_idx == i - 1:
-                            pass
-                        else:
-                            columns.append(ExtractHelper.extract(col, last_start_idx, i, metadata))
-                            last_start_idx = i
-                    elif last_tag == CellTagType.DS:
-                        if last_tag_idx == i - 1:
+                    if last_start_idx != i:
+                        # ds cannot be at the front of ch
+                        if last_tag == CellTagType.CH:
                             pass
                         else:
                             columns.append(ExtractHelper.extract(col, last_start_idx, i, metadata))
@@ -77,16 +62,14 @@ class ExtractHelper:
                 elif tag == CellTagType.DS:
                     if last_start_idx is None:
                         last_start_idx = i
-                    if last_tag == CellTagType.CH:
-                        # ch should not come after ds
-                        pass
-                    elif last_tag == CellTagType.DS:
-                        if last_tag_idx == i - 1:
+                    if last_start_idx != i:
+                        if last_tag == CellTagType.CH:
+                            pass
+                        elif last_tag == CellTagType.DS:
                             pass
                         else:
                             columns.append(ExtractHelper.extract(col, last_start_idx, i, metadata))
                             last_start_idx = i
-                last_tag_idx = i
                 last_tag = tag
 
             if non_empty_index is not None and non_empty_index > last_start_idx:

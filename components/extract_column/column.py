@@ -96,10 +96,6 @@ class Column:
         #     for cell in failed_cells:
         #         self.convert_cell_type(cell, ContentType.NULL)
 
-    def remove_empty_cells(self):
-        # todo
-        pass
-
     def __str__(self):
         nl = '\t\t\t\n'
         return f'''
