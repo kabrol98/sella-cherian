@@ -71,12 +71,12 @@ class Parser:
         last_empty_row = -math.inf
         last_num_row = -math.inf
         cells_t = [list(x) for x in zip(*cells)]
+        changed_rows = set()
         for i in range(len(cells_t)):
             row = cells_t[i]
             num_num_cells = 0
             tag_num_cells = []
             num_string_cells = 0
-            num_blank_cells = 0
             for cell_labelled in row:
                 if cell_labelled.cell.compact_cell.content_type == ContentType.NUMERIC:
                     num_num_cells += 1
@@ -84,36 +84,37 @@ class Parser:
                         tag_num_cells.append(cell_labelled.tag)
                 elif cell_labelled.cell.compact_cell.content_type == ContentType.STRING:
                     num_string_cells += 1
-                else:
-                    num_blank_cells += 1
-            if num_blank_cells == len(row):
-                last_empty_row = i
-                # assume that a blank line separates two tables
-                for cell_labelled in row:
-                    cell_labelled.tag = CellTagType.DE
-            elif num_num_cells > 0:
+            if num_num_cells > 0:
                 most_common_tag = Counter(tag_num_cells).most_common(1)[0][0]
                 for cell_labelled in row:
                     if cell_labelled.cell.compact_cell.content_type == ContentType.STRING:
                         cell_labelled.tag = most_common_tag
+                        changed_rows.add(i)
                 last_num_row = i
             elif num_num_cells == 0:
-                if i == 0 or last_empty_row == i-1 or last_num_row == i - 1:
+                if i == 0 or last_num_row == i - 1:
                     for cell_labelled in row:
                         if cell_labelled.cell.compact_cell.content_type == ContentType.STRING:
                             cell_labelled.tag = CellTagType.CH
+                            changed_rows.add(i)
                     if last_num_row == i - 1:
                         # assume that numbers cannot be headers
                         for cell_labelled in cells_t[i-1]:
                             cell_labelled.tag = CellTagType.DE
+                            changed_rows.add(i-1)
                 else:
-                    for cell_labelled in cells_t[i - 1]:
-                        cell_labelled.tag = CellTagType.DC
+                    if i not in changed_rows:
+                        for cell_labelled in row:
+                            if cell_labelled.tag == CellTagType.CH or cell_labelled.tag == CellTagType.DS:
+                                cell_labelled.tag = CellTagType.DC
 
+        print('\n=======================================================================================\n' * 10)
         for col in cells:
             result.append(list(
                 map(lambda temp: CellLabeled(tag=temp.tag, cell=temp.cell.compact_cell), col)
             ))
+            for cell in col:
+                print(cell.tag, cell.cell.compact_cell)
         return result
 
 
@@ -133,9 +134,9 @@ class Parser:
                 if label < 0 or label > 5:
                     raise RuntimeError("Invalid Label")
                 temp_dict = CellLabeled(tag=label, cell=cell)
-                if cell.compact_cell is not None:
+                # if cell.compact_cell is not None:
                     # ['CH' 'DC' 'DE' 'DS' 'NDC']
-                    print(temp_dict.tag, temp_dict.cell.compact_cell, cell.get_feature_vector())
+                    # print(temp_dict.tag, temp_dict.cell.compact_cell, cell.get_feature_vector())
                 # print(label)
                 tagged_result.append(temp_dict)
             result.append(tagged_result)

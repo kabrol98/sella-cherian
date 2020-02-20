@@ -18,14 +18,15 @@ if __name__ == '__main__':
             "data_corpus/Fully Duplicate ReorderedColumns.xlsx",
             "data_corpus/GOA2007_Leg1.xlsx",
             "data_corpus/metabolite data.xlsx",
-            "data_corpus/Test 1.xlsx"
+            "data_corpus/Test 1.xlsx",
+            "data_corpus/temp test1.xlsx"
         ]
         model_path = "models/NeuralNetwork/vertical_lstm.h5"
 
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
         model = keras.models.load_model(model_path)
 
-        parser = Parser(files[4], model)
+        parser = Parser(files[7], model)
         results = []
         for res in parser.parse():
             results.append(res)

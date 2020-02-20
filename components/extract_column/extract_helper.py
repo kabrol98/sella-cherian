@@ -1,3 +1,4 @@
+import math
 from collections import Counter
 
 from components.cell_labeling.cell_compact import CellTagType, ContentType
@@ -76,7 +77,7 @@ class ExtractHelper:
             result = True
             for cell in col.content_cells:
                 if cell.content_type == ContentType.STRING:
-                    if is_cell_empty(cell.content):
+                    if is_cell_empty(str(cell.content)):
                         result = False
                     else:
                         result = True
@@ -93,70 +94,70 @@ class ExtractHelper:
         columns = []
         for j in range(len(data)):
             col = data[j]
-            ch_start = -1
-            ch_end = -1
-            ds = -1
-            de_start = -1
-            de_end = -1
+            last_start_idx = None
+            last_tag_idx = None
+            last_tag = None
+            non_empty_index = None
             for i in range(len(col)):
                 labeled_cell = col[i]
                 tag = labeled_cell.tag
+                if tag != CellTagType.NDC:
+                    non_empty_index = i
                 if tag == CellTagType.CH:
-                    if ch_start < 0:
-                        ch_start = i
-                    else:
-                        if ch_end >= 0:
-                            ch_end, ch_start, de_end, de_start, ds, column = ExtractHelper.method_name(
-                                ch_end, ch_start,col,de_end, de_start,ds, i)
-                            column.metadata = metadata
-                            columns.append(column)
-                elif tag == CellTagType.DS:
-                    if ch_start >= 0 and ch_end < 0:
-                        ch_end = i - 1
-                    if ds < 0:
-                        # there can be only one ds cell
-                        ds = i
-                elif tag == CellTagType.DC or tag == CellTagType.NDC:
-                    if ch_start >= 0 and ch_end < 0:
-                        ch_end = i - 1
-                    if de_start >= 0:
-                        de_end = i - 1
-                        ch_end, ch_start, de_end, de_start, ds, column = ExtractHelper.method_name(
-                            ch_end, ch_start,col,de_end, de_start, ds,i)
-                        column.metadata = metadata
-                        columns.append(column)
-                    if tag == CellTagType.DC and ds < 0:
-                        # there can be only one ds cell
-                        # force dc to become ds
-                        ds = i
-                elif tag == CellTagType.DE:
-                    if ch_start >= 0 and ch_end < 0:
-                        ch_end = i - 1
-                    if de_start < 0:
-                        de_start = i
-            if de_start >= 0:
-                de_end = len(col) - 1
-                _, _, _, _, _, column = ExtractHelper.method_name(
-                    ch_end, ch_start, col,de_end, de_start, ds, de_end)
-                column.metadata = metadata
-                columns.append(column)
+                    if last_start_idx is None:
+                        last_start_idx = i
+                    if last_tag == CellTagType.CH:
+                        if last_tag_idx == i - 1:
+                            pass
+                        else:
+                            columns.append(ExtractHelper.extract(col, last_start_idx, i, metadata))
+                            last_start_idx = i
+                    elif last_tag == CellTagType.DS:
+                        if last_tag_idx == i - 1:
+                            pass
+                        else:
+                            columns.append(ExtractHelper.extract(col, last_start_idx, i, metadata))
+                            last_start_idx = i
 
+                elif tag == CellTagType.DS:
+                    if last_start_idx is None:
+                        last_start_idx = i
+                    if last_tag == CellTagType.CH:
+                        # ch should not come after ds
+                        columns.append(ExtractHelper.extract(col, last_start_idx, i, metadata))
+                        last_start_idx = i
+                    elif last_tag == CellTagType.DS:
+                        if last_tag_idx == i - 1:
+                            pass
+                        else:
+                            columns.append(ExtractHelper.extract(col, last_start_idx, i, metadata))
+                            last_start_idx = i
+                last_tag_idx = i
+                last_tag = tag
+
+            if non_empty_index is not None and non_empty_index > last_start_idx:
+                columns.append(ExtractHelper.extract(col, last_start_idx, non_empty_index, metadata))
         return ExtractHelper.remove_empty_columns(columns)
 
     @staticmethod
-    def method_name(ch_end, ch_start, col, de_end, de_start, ds, i):
+    def extract(col, start_idx, exclude_end_index, metadata):
         column = Column()
-        for j in range(ch_start, ch_end + 1):
-            column.header_cells.append(col[j].cell)
-        for j in range(ch_end + 1, i):
-            column.content_cells.append(col[j].cell)
-        if ds >= 0:
-            column.starting_cell = col[ds].cell
-        if de_end >= 0:
-            column.ending_cell = col[de_end].cell
-        ch_start = -1
-        ch_end = -1
-        ds = -1
-        de_start = -1
-        de_end = -1
-        return ch_end, ch_start, de_end, de_start, ds, column
+        column.metadata = metadata
+        ch_found = False
+        for i in range(start_idx, exclude_end_index):
+            cell_labeled = col[i]
+            cell = cell_labeled.cell
+            if cell_labeled.tag == CellTagType.CH and not ch_found:
+                ch_found = True
+                column.header_cells.append(cell)
+                continue
+            column.content_cells.append(cell)
+            if cell_labeled.tag == CellTagType.DS and column.starting_cell is None:
+                column.starting_cell = cell
+            if cell_labeled.tag == CellTagType.DE:
+                column.ending_cell = cell
+        if column.starting_cell is None and len(column.content_cells) != 0:
+            column.starting_cell = column.content_cells[0]
+        if column.ending_cell is None and len(column.content_cells) != 0:
+            column.ending_cell = column.content_cells[-1]
+        return column
