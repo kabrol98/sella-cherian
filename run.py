@@ -26,7 +26,7 @@ if __name__ == '__main__':
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
         model = keras.models.load_model(model_path)
 
-        parser = Parser(files[1], model)
+        parser = Parser(files[5], model)
         results = []
         for res in parser.parse():
             results.append(res)
