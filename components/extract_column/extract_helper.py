@@ -16,51 +16,6 @@ class ExtractHelper:
     }
 
     @staticmethod
-    def compare_surrounding_tags(
-            cell: CellTagType,
-            left: CellTagType,
-            second_to_left: CellTagType,
-            right: CellTagType,
-            second_to_right: CellTagType
-    ):
-        if cell not in ExtractHelper.valid_surrounding_tags:
-            raise RuntimeError("Specificed cell type not recognized")
-        surrounding_tags = ExtractHelper.valid_surrounding_tags[cell]
-        if (left in surrounding_tags and second_to_left in surrounding_tags) or (
-                right in surrounding_tags and second_to_right in surrounding_tags):
-            return cell
-        else:
-            counter = Counter([cell, left, second_to_left, right, second_to_right])
-            return counter.most_common(1)[0][0]
-
-    @staticmethod
-    def check_left_and_right(data, col_idx, row_idx):
-        cell = data[col_idx][row_idx].tag
-        left = data[col_idx - 1][row_idx].tag if col_idx - 1 >= 0 else None
-        right = data[col_idx + 1][row_idx].tag if col_idx + 1 < len(data) else None
-        second_to_left = data[col_idx - 2][row_idx].tag if col_idx - 2 >= 0 else None
-        second_to_right = data[col_idx + 2][row_idx].tag if col_idx + 2 < len(data) else None
-
-        if left is None:
-            if right is not None:
-                left = right
-            else:
-                left = cell
-        if right is None:
-            if left is not None:
-                right = left
-            else:
-                right = cell
-        if second_to_left is None:
-            second_to_left = left
-        if second_to_right is None:
-            second_to_right = right
-        if cell == left and cell == right:
-            return cell
-        return ExtractHelper.compare_surrounding_tags(cell=cell, left=left, right=right, second_to_left=second_to_left,
-                                                      second_to_right=second_to_right)
-
-    @staticmethod
     def iterator(data):
         for col_idx, col in enumerate(data):
             for row_idx, labeled_cell in enumerate(col):
@@ -124,8 +79,7 @@ class ExtractHelper:
                         last_start_idx = i
                     if last_tag == CellTagType.CH:
                         # ch should not come after ds
-                        columns.append(ExtractHelper.extract(col, last_start_idx, i, metadata))
-                        last_start_idx = i
+                        pass
                     elif last_tag == CellTagType.DS:
                         if last_tag_idx == i - 1:
                             pass
@@ -143,12 +97,10 @@ class ExtractHelper:
     def extract(col, start_idx, exclude_end_index, metadata):
         column = Column()
         column.metadata = metadata
-        ch_found = False
         for i in range(start_idx, exclude_end_index):
             cell_labeled = col[i]
             cell = cell_labeled.cell
-            if cell_labeled.tag == CellTagType.CH and not ch_found:
-                ch_found = True
+            if cell_labeled.tag == CellTagType.CH and cell.content_type != ContentType.NULL and cell.content_type is not None:
                 column.header_cells.append(cell)
                 continue
             column.content_cells.append(cell)

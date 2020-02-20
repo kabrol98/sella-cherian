@@ -72,6 +72,7 @@ class Parser:
         last_num_row = -math.inf
         cells_t = [list(x) for x in zip(*cells)]
         changed_rows = set()
+        potential_string_rows = set()
         for i in range(len(cells_t)):
             row = cells_t[i]
             num_num_cells = 0
@@ -104,9 +105,23 @@ class Parser:
                             changed_rows.add(i-1)
                 else:
                     if i not in changed_rows:
-                        for cell_labelled in row:
-                            if cell_labelled.tag == CellTagType.CH or cell_labelled.tag == CellTagType.DS:
-                                cell_labelled.tag = CellTagType.DC
+                        potential_string_rows.add(i)
+
+        for row_idx in potential_string_rows:
+            isStringCol = True
+            for iter_row_idx in range(row_idx + 1, len(cells_t)):
+                if iter_row_idx - row_idx <= 3:
+                    if iter_row_idx not in potential_string_rows:
+                        isStringCol = False
+                        break
+                else:
+                    break
+            if isStringCol:
+                row = cells_t[row_idx]
+                for cell_labelled in row:
+                    if cell_labelled.tag == CellTagType.CH or cell_labelled.tag == CellTagType.DS:
+                        cell_labelled.tag = CellTagType.DC
+
 
         print('\n=======================================================================================\n' * 10)
         for col in cells:
