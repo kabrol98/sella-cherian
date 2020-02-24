@@ -88,7 +88,7 @@ class Parser:
             if num_num_cells > 0:
                 most_common_tag = Counter(tag_num_cells).most_common(1)[0][0]
                 for cell_labelled in row:
-                    if cell_labelled.cell.compact_cell.content_type == ContentType.STRING:
+                    if cell_labelled.tag != CellTagType.NDC:
                         cell_labelled.tag = most_common_tag
                         changed_rows.add(i)
                 last_num_row = i

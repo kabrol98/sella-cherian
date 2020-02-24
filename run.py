@@ -15,6 +15,7 @@ if __name__ == '__main__':
             "data_corpus/00sumdat_copy.xlsx",
             "data_corpus/1-1-10Na-Kinetic Curves.xlsx",
             "data_corpus/Aexperiment.xlsx",
+            "data_corpus/CMOP.xlsx",
             "data_corpus/Fully Duplicate ReorderedColumns.xlsx",
             "data_corpus/GOA2007_Leg1.xlsx",
             "data_corpus/metabolite data.xlsx",
@@ -26,7 +27,7 @@ if __name__ == '__main__':
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
         model = keras.models.load_model(model_path)
 
-        parser = Parser(files[6], model)
+        parser = Parser(files[3], model)
         results = []
         for res in parser.parse():
             results.append(res)
