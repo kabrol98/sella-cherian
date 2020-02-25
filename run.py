@@ -23,7 +23,8 @@ if __name__ == '__main__':
             "data_corpus/m0902053;4001_4003.xlsx",
             "data_corpus/metabolite data.xlsx",
             "data_corpus/Michela MayJune RegularCruise Containment.xlsx",
-            "data_corpus/ML-W0704A-nutrients1.xlsx"
+            "data_corpus/ML-W0704A-nutrients1.xlsx",
+            "data_corpus/plasmidsDB.xlsx"
         ]
         model_path = "models/NeuralNetwork/vertical_lstm.h5"
 

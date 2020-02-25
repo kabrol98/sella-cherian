@@ -14,4 +14,4 @@ default_header_values = ["%", "area", "author", "average", "avg", "capacity", "c
 
 # null_default feature has been discarded
 default_null_values = {"nil", "Nil", "NIL", "niL", "nIl", "NIl", "NiL", "null", "Null", "NuLL", "NUll",
-                       "nULL", "NULL", "na", "NA", "Na", " ", "#", "VOID", "void", "Void", "(na)", "(Na)", "(NA)","n/a", "N/a", "N/A", "(n/a)", "(N/a)", "(N/A)", "(x)", "(X)", "-", " - ", " -", "- ", "--", "...", "No data", "No reading"}
+                       "nULL", "NULL", "na", "NA", "Na", " ", "VOID", "void", "Void", "(na)", "(Na)", "(NA)","n/a", "N/a", "N/A", "(n/a)", "(N/a)", "(N/A)", "(x)", "(X)", "-", " - ", " -", "- ", "--", "...", "No data", "No reading"}
