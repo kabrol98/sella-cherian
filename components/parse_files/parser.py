@@ -123,13 +123,13 @@ class Parser:
                         cell_labelled.tag = CellTagType.DC
 
 
-        print('\n=======================================================================================\n' * 10)
+        # print('\n=======================================================================================\n' * 10)
         for col in cells:
             result.append(list(
                 map(lambda temp: CellLabeled(tag=temp.tag, cell=temp.cell.compact_cell), col)
             ))
-            for cell in col:
-                print(cell.tag, cell.cell.compact_cell)
+            # for cell in col:
+            #     print(cell.tag, cell.cell.compact_cell)
         return result
 
 
@@ -156,7 +156,7 @@ class Parser:
                 tagged_result.append(temp_dict)
             result.append(tagged_result)
         # test_exit()
-        print("\n\n")
+        # print("\n\n")
         return self.set_rules(result)
 
     def parse(self):

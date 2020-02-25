@@ -116,6 +116,8 @@ class CellExtended:
             self.as_number()
         elif isinstance(raw_cell.value, datetime.date):
             self.as_string()
+        elif isinstance(raw_cell.value, datetime.time):
+            self.as_string()
         elif raw_cell.value is None:
             self.as_blank()
         else:
@@ -180,7 +182,7 @@ class CellExtended:
     def is_all_small(self):
         smallCnt = 0
         value = self.raw_cell.value
-        if isinstance(value, datetime.date):
+        if isinstance(value, datetime.date) or isinstance(value, datetime.time):
             return True
         letterCnt = value.count(''.join(char for char in value if char.isalpha()))
         for i in range(len(value)):

@@ -73,7 +73,7 @@ class ExtractHelper:
                 last_tag = tag
 
             if non_empty_index is not None and non_empty_index > last_start_idx:
-                columns.append(ExtractHelper.extract(col, last_start_idx, non_empty_index, metadata))
+                columns.append(ExtractHelper.extract(col, last_start_idx, non_empty_index+1, metadata))
         return ExtractHelper.remove_empty_columns(columns)
 
     @staticmethod
