@@ -23,3 +23,5 @@ class BertSummary:
         bc = BertClient()
         res = bc.encode(data)
         return res[0]
+    def vectorize():
+        return self.bert_vector

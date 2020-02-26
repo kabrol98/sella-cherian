@@ -1,6 +1,5 @@
 from collections import defaultdict
 from typing import List
-
 from components.cell_labeling.cell_compact import CellCompact, ContentType
 from components.parse_files.metadata import ColumnMetaData
 
