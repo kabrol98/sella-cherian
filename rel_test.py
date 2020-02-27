@@ -45,8 +45,8 @@ for i in range(len(labels)):
     for j in range(len(labels)):
         text = ax.text(j, i, "{0:.1f}".format(cosine_matrix[i, j]),
                        ha="center", va="center", color="b")
-ax.set_title('')
+ax.set_title('Numeric Columns/ Entended Summaries/ No Clustering')
 ax.imshow(cosine_matrix, cmap='Pastel1')
 fig.tight_layout()
 # plt.show()
-plt.savefig('rel-numeric-noclusters.png')
+plt.savefig('testing/rel-numeric-noclusters.png')
