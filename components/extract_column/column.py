@@ -21,18 +21,28 @@ class Column:
                 try:
                     cell.content = str(cell.content)
                     cell.content_type = ContentType.STRING
-                except:
+                except Exception as e:
+                    print(e)
                     return False
+                return True
             elif cell.content_type == ContentType.NULL:
+                return True
+            elif cell.content_type is None:
+                cell.content_type = ContentType.NULL
                 return True
         elif max_type == ContentType.NUMERIC:
             if cell.content_type == ContentType.STRING:
                 try:
                     cell.content = float(cell.content)
                     cell.content_type = ContentType.STRING
-                except:
+                except Exception as e:
+                    print(e)
                     return False
+                return True
             elif cell.content_type == ContentType.NULL:
+                return True
+            elif cell.content_type is None:
+                cell.content_type = ContentType.NULL
                 return True
         elif max_type == ContentType.NULL:
             cell.content_type = ContentType.NULL
@@ -49,27 +59,41 @@ class Column:
         if len(all_counts) == 1:
             self.type = self.content_cells[0].content_type
             return
-        max_type = None
-        max_count = 0
-        for key, value in all_counts.items():
-            if value > max_count:
-                max_count = value
-                max_type = key
-        failed_cells = []
-        for cell in self.content_cells:
-            if not self.convert_cell_type(cell, max_type):
-                failed_cells.append(cell)
-        if len(failed_cells) / len(self.content_cells) >= 0.05:
+        isFail = False
+        if all_counts[ContentType.STRING] > 0:
+            self.type = ContentType.STRING
             for cell in self.content_cells:
                 if not self.convert_cell_type(cell, ContentType.STRING):
-                    raise Exception("Fail to convert all cells to string")
+                    print("Fail to convert to String: ", cell)
+                    isFail = True
+        elif all_counts[ContentType.NUMERIC] > 0:
+            self.type = ContentType.NUMERIC
+            for cell in self.content_cells:
+                if not self.convert_cell_type(cell, ContentType.NUMERIC):
+                    print("Fail to convert to number: ", cell)
+                    isFail = True
         else:
-            for cell in failed_cells:
-                self.convert_cell_type(cell, ContentType.NULL)
-
-    def remove_empty_cells(self):
-        # todo
-        pass
+            self.type = ContentType.NULL
+        if isFail:
+            print(self)
+            print("\n")
+        # max_type = None
+        # max_count = 0
+        # for key, value in all_counts.items():
+        #     if value > max_count:
+        #         max_count = value
+        #         max_type = key
+        # failed_cells = []
+        # for cell in self.content_cells:
+        #     if not self.convert_cell_type(cell, max_type):
+        #         failed_cells.append(cell)
+        # if len(failed_cells) / len(self.content_cells) >= 0.05:
+        #     for cell in self.content_cells:
+        #         if not self.convert_cell_type(cell, ContentType.STRING):
+        #             raise Exception("Fail to convert all cells to string")
+        # else:
+        #     for cell in failed_cells:
+        #         self.convert_cell_type(cell, ContentType.NULL)
 
     def __str__(self):
         nl = '\t\t\t\n'

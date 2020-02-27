@@ -13,7 +13,5 @@ default_header_values = ["%", "area", "author", "average", "avg", "capacity", "c
                          "week", "eidth", "year", "yr."]
 
 # null_default feature has been discarded
-default_null_values = {"nil", "Nil", "NIL", "0", "00", "niL", "nIl", "NIl", "NiL", "null", "Null", "NuLL", "NUll",
-                       "nULL", "NULL", "na", "NA", "Na", " ", "#", "VOID", "void", "Void", "0%", "(na)", "(Na)", "(NA)",
-                       "n/a", "N/a", "N/A", "(n/a)", "(N/a)", "(N/A)", "(x)", "(X)", "-", " - ", " -", "- ", "--", "z",
-                       "Z", "...", "zero", "Zero", "ZERO", "empty", "No data", "No reading"}
+default_null_values = {"nil", "Nil", "NIL", "niL", "nIl", "NIl", "NiL", "null", "Null", "NuLL", "NUll",
+                       "nULL", "NULL", "na", "NA", "Na", " ", "VOID", "void", "Void", "(na)", "(Na)", "(NA)","n/a", "N/a", "N/A", "(n/a)", "(N/a)", "(N/A)", "(x)", "(X)", "-", " - ", " -", "- ", "--", "...", "No data", "No reading"}

@@ -116,6 +116,8 @@ class CellExtended:
             self.as_number()
         elif isinstance(raw_cell.value, datetime.date):
             self.as_string()
+        elif isinstance(raw_cell.value, datetime.time):
+            self.as_string()
         elif raw_cell.value is None:
             self.as_blank()
         else:
@@ -158,15 +160,17 @@ class CellExtended:
         self.state["below_blank"] = bottom_cell.state["is_blank"] if bottom_cell is not None else True
 
     def is_alphabet(self):
-        return self.raw_cell.value.isalpha()
+        if isinstance(self.raw_cell.value, str):
+            return self.raw_cell.value.isalpha()
+        return False
 
     def is_alphanumeric(self):
         if isinstance(self.raw_cell.value, str):
             return self.raw_cell.value.isalnum()
         elif isinstance(self.raw_cell.value, int):
-            return True
+            return False
         elif isinstance(self.raw_cell.value, float):
-            return True
+            return False
         else:
             return False
 
@@ -178,7 +182,7 @@ class CellExtended:
     def is_all_small(self):
         smallCnt = 0
         value = self.raw_cell.value
-        if isinstance(value, datetime.date):
+        if isinstance(value, datetime.date) or isinstance(value, datetime.time):
             return True
         letterCnt = value.count(''.join(char for char in value if char.isalpha()))
         for i in range(len(value)):
