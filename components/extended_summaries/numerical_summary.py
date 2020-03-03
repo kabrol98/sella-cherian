@@ -4,7 +4,7 @@ from components.extract_column.column import Column
 from components.cell_labeling.cell_compact import CellCompact, ContentType
 from components.parse_files.metadata import ColumnMetaData
 
-NUM_BINS = 100
+NUM_BINS = 10
 class NumericalSummary:
      
     def revise_features(self, column: Column):
@@ -32,6 +32,7 @@ class NumericalSummary:
         self.max = 0
         self.min = 0
         self.mean = 0
+        self.median = 0
         self.std = 0
         self.hist = []
         self.skewLeft = 0
@@ -42,13 +43,13 @@ class NumericalSummary:
         # self.file_metadata = file_metadata
         self.revise_features(column)
         vector = np.concatenate(([
-            self.min,
-            self.max,
+            # self.min,
+            # self.max,
             self.mean,
             self.median,
             self.std,
             self.skewRight,
             self.skewLeft,
-            ], self.hist[0]))
+            ], self.mean * self.mean * self.hist[0]))
         # print(vector)
         self.vector = vector

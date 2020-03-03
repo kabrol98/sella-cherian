@@ -13,8 +13,5 @@ class ExtendedSummary:
         else:
             self.summary = BertSummary(column)
         self.type = column.type
-        self.vectorize = self.summary.vectorize
-        self.string = column.metadata.sheet_name + '.'.join(map(lambda x: str(x.content),column.header_cells))
-
-    def serialize(self):
-        return self.string
+        self.vector = self.summary.vector
+        self.header = column.metadata.sheet_name + '.'.join(map(lambda x: str(x.content),column.header_cells))

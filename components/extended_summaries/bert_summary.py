@@ -11,7 +11,7 @@ class BertSummary:
         self.column_raw = column
         self.header_serialized = self.serialize(column.header_cells)
         self.data_serialized = self.serialize(column.content_cells)
-        self.bert_vector = self.get_bert_summary([self.header_serialized + self.data_serialized])
+        self.vector = self.get_bert_summary([self.header_serialized + self.data_serialized])
         
     def serialize(self, column_data: [CellCompact]):
         ret = ""
@@ -23,5 +23,3 @@ class BertSummary:
         bc = BertClient()
         res = bc.encode(data)
         return res[0]
-    def vectorize():
-        return self.bert_vector
