@@ -1,10 +1,9 @@
 import pickle
 from components.extract_column.column import Column
-# from components.bert_summaries.bert_summary import BertSummary
 import matplotlib.pyplot as plt
 from sklearn.metrics.pairwise import cosine_similarity
 from components.cell_labeling.cell_compact import ContentType
-from components.numerical_summaries.any_summary import AnySummary
+from components.extended_summaries.extended_summary import ExtendedSummary
 import codecs, json 
 import numpy as np
 
@@ -17,6 +16,8 @@ def compute_sim_results(embedList, path=None):
     if path != None:
         json.dump(cosine_matrix.tolist(), codecs.open(path, 'w', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4) ### this saves the array in .json format
     return cosine_matrix
+
+
 with open('columns.p', 'rb') as f:
     columns = pickle.load(f)
 print("Extracted Columns...")
@@ -25,8 +26,8 @@ numericals = np.extract([x.type==ContentType.NUMERIC for x in columns], columns)
 berts = np.extract([x.type!=ContentType.NUMERIC for x in columns], columns)
 # print(columns)
 print(f'Found {len(numericals)} numerical columns, {len(berts)} text columns')
-numericalSummaries = [AnySummary(c) for c in numericals]
-# bertSummaries = [AnySummary(c) for c in berts]
+numericalSummaries = [ExtendedSummary(c) for c in numericals]
+# bertSummaries = [ExtendedSummary(c) for c in berts]
 print('Generated summaries...')
 numericalVectors = np.array([c.vectorize() for c in numericalSummaries])
 # bertVectors = np.array([c.vectorize() for c in numericalSummaries])

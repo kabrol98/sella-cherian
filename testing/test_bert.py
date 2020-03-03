@@ -1,6 +1,6 @@
 import pickle
 from components.extract_column.column import Column
-from components.bert_summaries.bert_summary import BertSummary
+from components.extended_summaries.bert_summary import BertSummary
 from sklearn.metrics.pairwise import cosine_similarity
 import codecs, json 
 import numpy as np

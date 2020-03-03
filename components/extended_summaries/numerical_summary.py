@@ -10,9 +10,10 @@ class NumericalSummary:
     def revise_features(self, column: Column):
         assert column.type == ContentType.NUMERIC
         raw_column = column.content_cells
-        # raw_column = filter(lambda x: x!= ContentType.NULL, raw_column)
+        raw_column = list(filter(lambda x: x!= ContentType.NULL, raw_column))
         assert len(raw_column) > 0
         col = np.array([c.content for c in raw_column])
+        col = list(filter(lambda x: x is not None, col))
         self.min = np.min(col)
         self.max = np.max(col)
         self.mean = np.mean(col)
