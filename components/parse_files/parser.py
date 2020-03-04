@@ -77,6 +77,7 @@ class Parser:
             row = cells_t[i]
             num_num_cells = 0
             tag_num_cells = []
+            tag_str_cells = []
             num_string_cells = 0
             for cell_labelled in row:
                 if cell_labelled.cell.compact_cell.content_type == ContentType.NUMERIC:
@@ -85,6 +86,8 @@ class Parser:
                         tag_num_cells.append(cell_labelled.tag)
                 elif cell_labelled.cell.compact_cell.content_type == ContentType.STRING:
                     num_string_cells += 1
+                    if cell_labelled.tag != CellTagType.NDC:
+                        tag_str_cells.append(cell_labelled.tag)
             if num_num_cells > 0:
                 most_common_tag = Counter(tag_num_cells).most_common(1)[0][0]
                 for cell_labelled in row:
@@ -106,21 +109,31 @@ class Parser:
                 else:
                     if i not in changed_rows:
                         potential_string_rows.add(i)
+                    counter_result = Counter(tag_str_cells).most_common(1)
+                    if len(counter_result) > 0:
+                        most_common_tag = counter_result[0][0]
+                        for cell_labelled in row:
+                            if cell_labelled.tag != CellTagType.NDC:
+                                cell_labelled.tag = most_common_tag
+                                changed_rows.add(i)
 
+        all_string_rows = set()
         for row_idx in potential_string_rows:
-            isStringCol = True
-            for iter_row_idx in range(row_idx + 1, len(cells_t)):
-                if iter_row_idx - row_idx <= 3:
-                    if iter_row_idx not in potential_string_rows:
-                        isStringCol = False
-                        break
-                else:
+            for iter_row_idx in range(row_idx, min(len(cells_t), row_idx+3)):
+                if iter_row_idx not in potential_string_rows:
+                    for remove_idx in range(row_idx, iter_row_idx):
+                        all_string_rows.remove(remove_idx)
                     break
-            if isStringCol:
-                row = cells_t[row_idx]
-                for cell_labelled in row:
-                    if cell_labelled.tag == CellTagType.CH or cell_labelled.tag == CellTagType.DS:
-                        cell_labelled.tag = CellTagType.DC
+                all_string_rows.add(iter_row_idx)
+            # for iter_row_idx in range(max(0, row_idx-2), row_idx):
+            #     if iter_row_idx not in potential_string_rows:
+            #         isStringCol = False
+            #         break
+        for row_idx in all_string_rows:
+            row = cells_t[row_idx]
+            for cell_labelled in row:
+                if cell_labelled.tag == CellTagType.CH or cell_labelled.tag == CellTagType.DS:
+                    cell_labelled.tag = CellTagType.DC
 
 
         # print('\n=======================================================================================\n' * 10)
