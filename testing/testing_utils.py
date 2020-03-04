@@ -26,7 +26,7 @@ def plot_results(cosine_set: np.array,
     plt.rcParams.update({'font.size': 7})
     N = cosine_set.shape[0]
     num_cols = int(np.ceil(np.sqrt(N)))
-    num_rows = int(np.ceil(N/num_cols))
+    num_rows = int(np.ceil(np.sqrt(N)))
     fig, axes = plt.subplots(nrows=num_rows, ncols=num_cols, squeeze=False)
     # Enumerate over clusters.
     for it in range(N):

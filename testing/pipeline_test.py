@@ -8,6 +8,7 @@ from components.extended_summaries.extended_summary import ExtendedSummary
 from components.cell_labeling.cell_compact import ContentType
 
 # Clustering Modules
+from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.mixture import GaussianMixture
 # from sklearn.cluster import DBScan
@@ -28,6 +29,7 @@ import tensorflow as tf
 import argparse
 from os import path
 from math import sqrt
+import pickle
 
 # Configure argument parser
 parser = argparse.ArgumentParser(description='''
@@ -41,6 +43,7 @@ parser.add_argument('-f', '--filename', default='plasmidsDB', help='Specify Exce
 parser.add_argument('-s', '--summary', default='extended', choices=['standard', 'extended'], help='Choose column summary type.')
 parser.add_argument('-d', '--data', default='numeric', choices=['numeric', 'text'], help='Choose between numerical and text data.')
 parser.add_argument('-c', '--cluster', default='none', choices=['none','kmeans','gmm'], help='Choose clustering method')
+parser.add_argument('-A', '--canalyse', default='none', action="store_true", help='Choose clustering method')
 
 args = parser.parse_args()
 # print(args)
@@ -102,8 +105,18 @@ else:
     Cluster = NoCluster()
     CLUSTER_TYPE='No_Clusters'
 
-clusters = Cluster.fit_predict(columns_vectorized)
-cluster_set, label_set = split_on_cluster(columns_vectorized, clusters, column_names)
+# Scale data using Z-norm
+columns_scaled = StandardScaler().fit_transform(columns_vectorized)
+
+# add scaled testing
+canalyse_path = f'{args.filename}-{SUMMARY_TYPE}-{DATA_TYPE}'
+if args.canalyse:
+    pickle.dump(columns_scaled, open(f'testing/canalyse/{canalyse_path}.p', "wb"))
+    
+
+
+clusters = Cluster.fit_predict(columns_scaled)
+cluster_set, label_set = split_on_cluster(columns_scaled, clusters, column_names)
 # Filter empty clusters.
 nz_filter = list(map(np.any, cluster_set))
 clusters_nonzero = cluster_set[nz_filter]
@@ -116,7 +129,7 @@ SimilarityClass = CosineSimilarity
 cosine_set = SimilarityClass(clusters_nonzero).cosine_set
 # print(cosine_set, cosine_set.shape)
 # exit()
-save_path = f'{args.filename}-{SUMMARY_TYPE}-{DATA_TYPE}-{CLUSTER_TYPE}.png'
+save_path = f'{args.filename}-{SUMMARY_TYPE}-{DATA_TYPE}-{CLUSTER_TYPE}'
 plot_title = f'{args.filename}||{SUMMARY_TYPE}||{DATA_TYPE}||{CLUSTER_TYPE}'
 # Plot results.
 plot_results(
