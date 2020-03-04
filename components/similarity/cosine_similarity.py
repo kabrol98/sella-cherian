@@ -12,16 +12,19 @@ import numpy as np
 
 class CosineSimilarity:
     def __init__(self, 
-                 columns: np.array,
+                 cluster_set: np.array,
                  verbose=False):
-        self.data = columns
+        self.data = cluster_set
         self.verbose = verbose
-        self.cosine_matrix = None
+        self.cosine_set = None
         self.compute_sim()
     
     def compute_sim(self):
-        cosine_matrix = cosine_similarity(self.data)
+        K = self.data.shape[0]
+        if self.verbose:
+            print(f'Attempting to compute similarities for each i in {self.data[0]}, {self.data[1]}')
+        cosine_set = np.array([cosine_similarity(self.data[i]) for i in range(K)])
         if self.verbose:
             print("Computed Cosines...")
-        self.cosine_matrix = cosine_matrix
+        self.cosine_set = cosine_set
     

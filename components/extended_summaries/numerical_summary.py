@@ -50,6 +50,6 @@ class NumericalSummary:
             self.std,
             self.skewRight,
             self.skewLeft,
-            ], self.mean * self.mean * self.hist[0]))
+            ], self.mean * NUM_BINS * self.hist[0]))
         # print(vector)
         self.vector = vector

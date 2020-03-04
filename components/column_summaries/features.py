@@ -83,7 +83,13 @@ class Features:
                 self.max,
                 self.min,
                 self.mean,
-                self.std
+                self.std,
+                self.common_values0,
+                self.common_frequencies0,
+                self.common_values1,
+                self.common_frequencies1,
+                self.unique_num,
+                self.null_num
             ])
         else:
             self.vector = np.array([
