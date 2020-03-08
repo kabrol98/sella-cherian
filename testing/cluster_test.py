@@ -11,12 +11,13 @@ from components.cell_labeling.cell_compact import ContentType
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.mixture import GaussianMixture
-# from sklearn.cluster import DBScan
+from sklearn.cluster import DBSCAN
 
 # Evaluation Modules
 from sklearn.metrics import davies_bouldin_score
 from sklearn.metrics import calinski_harabasz_score
 from sklearn.metrics import silhouette_score
+from sklearn.cluster import OPTICS
 
 # Testing Utilities
 from testing.testing_utils import *
@@ -33,7 +34,7 @@ from math import sqrt
 import pickle
 from glob import glob
 
-CLUSTER_OPTIONS=['kmeans','gmm']
+CLUSTER_OPTIONS=['kmeans','gmm', 'dbscan', 'optics']
 
 # Configure argument parser
 parser = argparse.ArgumentParser(description='''
@@ -106,6 +107,12 @@ if args.cluster == 'kmeans':
 elif args.cluster == 'gmm':
     Cluster = GaussianMixture
     CLUSTER_TYPE='EM_Clustering'
+elif args.cluster == 'dbscan':
+    Cluster = DBSCAN
+    CLUSTER_TYPE='DB_Clustering'
+elif args.cluster == 'optics':
+    Cluster = OPTICS
+    CLUSTER_TYPE='OP_Clustering'
 else:
     print('Invalid cluster choice')
     assert args.cluster in CLUSTER_CHOICES
@@ -116,4 +123,3 @@ columns_scaled = StandardScaler().fit_transform(columns_vectorized)
 # clusters = Cluster.fit_predict(columns_scaled)
 # cluster_set, label_set = split_on_cluster(columns_scaled, clusters, column_names)
 K_set = np.arange()
-
