@@ -5,25 +5,25 @@ from sklearn.utils.random import sample_without_replacement as sample
 from LocalitySensitiveHashing import LocalitySensitiveHashing
 import argparse
 
-def parse_args():
-    CLUSTER_OPTIONS=['kmeans','gmm', 'lsh', 'none']
-    # Configure argument parser
-    parser = argparse.ArgumentParser(description='''
-                                    Tests sella pipeline on given excel spreadsheet.
-                                    Outputs Confusion matrix of column similarity test
-                                    into testing/confusion_results.
-                                    Use command line arguments to configure different test types.
-                                    ''')
-    filegroup = parser.add_mutually_exclusive_group()
-    filegroup.add_argument('-f', '--filenames', default=['plasmidsDB'], nargs="*", help='Specify Excel spreadsheet name in data_corpus directory (Omit .xlsx)')
-    filegroup.add_argument('-S', '--file_sample', type=float, help="Pick number of files to randomly sample")
-    # Configure summary type, data type, cluster type.
-    parser.add_argument('-s', '--summary', default='extended', choices=['standard', 'extended'], help='Choose column summary type.')
-    parser.add_argument('-d', '--data', default='numeric', choices=['numeric', 'text'], help='Choose between numerical and text data.')
-    parser.add_argument('-c', '--cluster', default='none', choices=CLUSTER_OPTIONS, help='Choose clustering method')
-    parser.add_argument('-A', '--canalyse', default='none', action="store_true", help='Choose clustering method')
+# def parse_args():
+#     CLUSTER_OPTIONS=['kmeans','gmm', 'lsh', 'none']
+#     # Configure argument parser
+#     parser = argparse.ArgumentParser(description='''
+#                                     Tests sella pipeline on given excel spreadsheet.
+#                                     Outputs Confusion matrix of column similarity test
+#                                     into testing/confusion_results.
+#                                     Use command line arguments to configure different test types.
+#                                     ''')
+#     filegroup = parser.add_mutually_exclusive_group()
+#     filegroup.add_argument('-f', '--filenames', default=['plasmidsDB'], nargs="*", help='Specify Excel spreadsheet name in data_corpus directory (Omit .xlsx)')
+#     filegroup.add_argument('-S', '--file_sample', type=float, help="Pick number of files to randomly sample")
+#     # Configure summary type, data type, cluster type.
+#     parser.add_argument('-s', '--summary', default='extended', choices=['standard', 'extended'], help='Choose column summary type.')
+#     parser.add_argument('-d', '--data', default='numeric', choices=['numeric', 'text'], help='Choose between numerical and text data.')
+#     parser.add_argument('-c', '--cluster', default='none', choices=CLUSTER_OPTIONS, help='Choose clustering method')
+#     parser.add_argument('-A', '--canalyse', default='none', action="store_true", help='Choose clustering method')
 
-    return parser.parse_args()
+#     return parser.parse_args()
 
 def sample_dataset(s, filenames):
     if s == None or s <= 0:

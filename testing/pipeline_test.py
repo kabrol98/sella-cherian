@@ -45,7 +45,9 @@ parser.add_argument('-s', '--summary', default='extended', choices=['standard', 
 parser.add_argument('-d', '--data', default='numeric', choices=['numeric', 'text'], help='Choose between numerical and text data.')
 parser.add_argument('-c', '--cluster', default='none', choices=['none','kmeans','gmm','dbscan', 'optics'], help='Choose clustering method')
 parser.add_argument('-A', '--canalyse', default='none', action="store_true", help='Choose clustering method')
-
+parser.add_argument('-V', '--vary', help=f'''
+                    Choose varying parameter.
+                    For reference: {CLUSTER_PARAMS}''')
 args = parser.parse_args()
 # print(args)
 # Run Column Extraction.
@@ -102,19 +104,20 @@ N = len(columns_vectorized)
 # TODO: Integrate Clustering Modules.
 if args.cluster == 'kmeans':
     Cluster = MiniBatchKMeans(n_clusters=int(sqrt(N)), max_iter=100)
-    CLUSTER_TYPE='KMeans_Clustering'
+    CLUSTER_TYPE='KMeans'
 elif args.cluster == 'gmm':
     Cluster = GaussianMixture(n_components=int(sqrt(N)))
-    CLUSTER_TYPE='EM_Clustering'
+    CLUSTER_TYPE='EM'
 elif args.cluster == 'dbscan':
     Cluster = DBSCAN(eps=3, min_samples=2)
-    CLUSTER_TYPE='DB_Clustering'
+    CLUSTER_TYPE='DBSCAN'
 elif args.cluster == 'optics':
     Cluster = OPTICS(min_samples=2)
-    CLUSTER_TYPE='OP_Clustering'
+    CLUSTER_TYPE='OPTICS'
 else:
     Cluster = NoCluster()
     CLUSTER_TYPE='No_Clusters'
+    
 
 # Scale data using Z-norm
 columns_scaled = StandardScaler().fit_transform(columns_vectorized)
@@ -123,8 +126,6 @@ columns_scaled = StandardScaler().fit_transform(columns_vectorized)
 canalyse_path = f'{args.filename}-{SUMMARY_TYPE}-{DATA_TYPE}'
 if args.canalyse:
     pickle.dump(columns_scaled, open(f'testing/canalyse/{canalyse_path}.p', "wb"))
-
-
 
 clusters = Cluster.fit_predict(columns_scaled)
 cluster_set, label_set = split_on_cluster(columns_scaled, clusters, column_names)
@@ -139,8 +140,7 @@ SimilarityClass = CosineSimilarity
 
 cosine_set = SimilarityClass(clusters_nonzero).cosine_set
 
-
-save_path = f'{SUMMARY_TYPE}-{DATA_TYPE}-{CLUSTER_TYPE}'
+save_path = f'{SUMMARY_TYPE}-{DATA_TYPE}-{CLUSTER_TYPE}-{KEY_VARY}'
 plot_title = f'{SUMMARY_TYPE}||{DATA_TYPE}||{CLUSTER_TYPE}'
 
 # Plot results.

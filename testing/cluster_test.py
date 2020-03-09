@@ -36,12 +36,6 @@ import pickle
 from glob import glob
 from matplotlib import pyplot as plt
 
-<<<<<<< HEAD
-
-CLUSTER_OPTIONS=['kmeans','gmm', 'lsh']
-
-args = parse_args()
-=======
 CLUSTER_OPTIONS=['kmeans','gmm', 'dbscan', 'optics']
 
 # Configure argument parser
@@ -57,15 +51,16 @@ filegroup.add_argument('-S', '--file_sample', type=float, help="Pick number of f
 # Configure summary type, data type, cluster type.
 parser.add_argument('-s', '--summary', default='extended', choices=['standard', 'extended'], help='Choose column summary type.')
 parser.add_argument('-d', '--data', default='numeric', choices=['numeric', 'text'], help='Choose between numerical and text data.')
-parser.add_argument('-c', '--cluster', default='none', choices=CLUSTER_OPTIONS, help='Choose clustering method')
-
+parser.add_argument('-c', '--cluster', default='kmeans', choices=CLUSTER_OPTIONS, help='Choose clustering method')
+parser.add_argument('-V', '--vary', help=f'''
+                    Choose varying parameter.
+                    For reference: {CLUSTER_PARAMS}''')
 args = parser.parse_args()
->>>>>>> 0f3d4e14f51db23447173b419bdc59e2ec9ecdda
 
 # Run Column Extraction.
 # Test for valid filenames
 filenames = sample_dataset(args.file_sample, args.filenames)
-
+NUM_FILES=len(filenames)
 for n in filenames:
     if not path.exists(n):
         print(f'File {n} does not exist!')
@@ -110,19 +105,27 @@ columns_vectorized = np.array([c.vector for c in columns_summary])
 column_names = [c.header for c in columns_summary]
 # print(columns_vectorized[0])
 N = len(columns_vectorized)
+
 # TODO: Integrate Clustering Modules.
 if args.cluster == 'kmeans':
-    Cluster = MiniBatchKMeans
-    CLUSTER_TYPE='KMeans_Clustering'
+    Cluster = MiniBatchKMeans(n_clusters=int(sqrt(N)), max_iter=100)
+    CLUSTER_TYPE='KMeans'
+    clsuter_test=test_KMeans
 elif args.cluster == 'gmm':
-    Cluster = GaussianMixture
-    CLUSTER_TYPE='EM_Clustering'
+    Cluster = GaussianMixture(n_components=int(sqrt(N)))
+    CLUSTER_TYPE='EM'
+    cluster_test=test_EM
 elif args.cluster == 'dbscan':
-    Cluster = DBSCAN
-    CLUSTER_TYPE='DB_Clustering'
+    Cluster = DBSCAN(eps=3, min_samples=2)
+    CLUSTER_TYPE='DBSCAN'
+    cluster_test=test_DBSCAN
 elif args.cluster == 'optics':
-    Cluster = OPTICS
-    CLUSTER_TYPE='OP_Clustering'
+    Cluster = OPTICS(min_samples=2)
+    CLUSTER_TYPE='OPTICS'
+    cluster_test=test_OPTICS
+elif args.cluster=='none':
+    Cluster = NoCluster()
+    CLUSTER_TYPE='No_Clusters'
 else:
     print('Invalid cluster choice')
     assert args.cluster in CLUSTER_CHOICES
@@ -130,16 +133,36 @@ else:
 # Scale data using Z-norm
 columns_scaled = StandardScaler().fit_transform(columns_vectorized)
 
+# parse param arguments
+params = CLUSTER_PARAMS[CLUSTER_TYPE]
+pkey = args.vary
+if pkey == None:
+    pkey = list(params.keys())[0]
+    print(f'varying pkey {pkey}')
+if pkey not in params:
+    print('Error: vary the correct variable.')
+    assert pkey in params
+
 # clusters = Cluster.fit_predict(columns_scaled)
 # cluster_set, label_set = split_on_cluster(columns_scaled, clusters, column_names)
-scores = test_KMeans(columns_scaled)
-kvals = scores[-1]
+rng_max = int(sqrt(columns_scaled.shape[0]))
+rng = np.linspace(1,rng_max, num = min(rng_max, 20), dtype=np.int32)
+clusters = cluster_test(columns_scaled, pkey, params, rng)
+columns=columns_scaled
+db_scores = [davies_bouldin_score(columns, cluster) for cluster in clusters]
+ch_scores = [calinski_harabasz_score(columns, cluster) for cluster in clusters]
+s_scores = [silhouette_score(columns, cluster) for cluster in clusters]
+cluster_nums = [np.max(c)+1 for c in clusters]
+scores = [db_scores,ch_scores,s_scores, cluster_nums]
+kvals = rng
 scorenames = ['davies_bouldin_score', 'calinski_harabasz_score', 'silhouette_score']
 f, axes = plt.subplots(3,1)
 for i in range(3):
     ax = axes[i]
     ax = plot_scores(kvals, scores[i], scorenames[i],ax)
-plot_title='K-Means'
-path_name='kmeans-scores'
+plot_title=f'{NUM_FILES}_samples|{DATA_TYPE}|{SUMMARY_TYPE}|{CLUSTER_TYPE}|{pkey}'
+path_name=f'{NUM_FILES}_samples-{DATA_TYPE}-{SUMMARY_TYPE}-{CLUSTER_TYPE}-{pkey}'
+plt.suptitle(plot_title)
+f.tight_layout()
 plt.savefig(f'testing/cluster_results/{path_name}.png')
 print(f'Saved figure {plot_title} to {path_name}')

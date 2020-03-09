@@ -15,40 +15,56 @@ from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.mixture import GaussianMixture
+from sklearn.cluster import DBSCAN
+from sklearn.cluster import OPTICS
 
-def test_KMeans(columns):
-    K_PARAMS = {'k':10}
+
+CLUSTER_PARAMS={
+    'DBSCAN':{'eps':4, 'min_samples':2},
+    'OPTICS':{'min_samples':2},
+    'KMEANS':{'n_clusters':10},
+    'EM':{'n_components':10}
+}
+
+def test_KMeans(columns, pkey, params, rng):
     N = columns.shape[0]
-    k_vals = np.linspace(5,int(2*np.sqrt(N)), num=20, dtype=np.int32)
-    params = [cpy(K_PARAMS) for _ in range(len(k_vals))]
-    for i in range(len(k_vals)):
-        params[i]['k'] = k_vals[i]
-    cluster_obj = [MiniBatchKMeans(param['k']) for param in params]
+    cluster_obj= []
+    for val in rng:
+        params[pkey] = val
+        c_obj = MiniBatchKMeans(n_clusters=params['n_clusters'])
+        cluster_obj.append(c_obj)
     clusters = [o.fit_predict(columns) for o in cluster_obj]
-    print(columns.shape, clusters[0].shape)
-    db_scores = [davies_bouldin_score(columns, cluster) for cluster in clusters]
-    ch_scores = [calinski_harabasz_score(columns, cluster) for cluster in clusters]
-    s_scores = [silhouette_score(columns, cluster) for cluster in clusters]
-    
-    return db_scores, ch_scores, s_scores, k_vals
-    # print(clusters)
+    return clusters
 
-def test_LSH(columns):
-    LSH_PARAMS = {'k': 10, 'r': 50, 'b': 100}
+def test_EM(columns, pkey, params, rng):
     N = columns.shape[0]
-    k_vals = np.linspace(0,int(2*np.sqrt(N)), num=20, dtype=np.int32)
-    params = [cpy(LSH_PARAMS) for _ in range(len(k_vals))]
-    for i in range(len(k_vals)):
-        params[i]['k'] = k_vals[i]
-    cluster_obj = [LSHCluster(param['k'], param['r'], param['b']) for param in params]
-    clusters = [o.fit_transform(columns) for o in cluster_obj]
-    print(clusters)
-    exit()
-    db_scores = [davies_bouldin_score(columns, cluster) for cluster in clusters]
-    ch_scores = [calinski_harabasz_score(columns, cluster) for cluster in clusters]
-    s_scores = [silhouette_score(columns, cluster) for cluster in clusters]
-    
-    return db_scores, ch_scores, s_scores, k_vals
+    cluster_obj= []
+    for val in rng:
+        params[pkey] = val
+        c_obj = GaussianMixture(n_components=params['n_components'])
+        cluster_obj.append(c_obj)
+    clusters = [o.fit_predict(columns) for o in cluster_obj]
+    return clusters
+
+def test_DBSCAN(columns,pkey, params, rng):
+    cluster_obj= []
+    for val in rng:
+        params[pkey] = val
+        c_obj = DBSCAN(eps=params['eps'])
+        cluster_obj.append(c_obj)
+    clusters = [o.fit_predict(columns) for o in cluster_obj]
+    # print(columns.shape, clusters[0].shape)
+    return clusters
+
+def test_OPTICS(columns, pkey, params, rng):
+    cluster_obj= []
+    for val in rng:
+        params[pkey] = val
+        c_obj = OPTICS(min_samples=params['min_samples'])
+        cluster_obj.append(c_obj)
+    clusters = [o.fit_predict(columns) for o in cluster_obj]
+    # print(columns.shape, clusters[0].shape)
+    return clusters
 
 def plot_scores(params, scores, scorename, ax):
     ax.plot(params,scores)
