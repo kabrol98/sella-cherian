@@ -217,4 +217,3 @@ with open(rel_path, 'w') as csv_file:
     writer = csv.DictWriter(csv_file, fieldnames=list(graph_row.keys()))
     for row in rel_rows:
         writer.writerow(row)
-        
