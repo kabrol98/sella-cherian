@@ -35,7 +35,7 @@ def sample_dataset(s, filenames):
         index = sample(n, s)
         return filenames[index]
     
-def plot_results(cosine_set: np.array,
+def plot_cosine(cosine_set: np.array,
                  label_set: np.array,
                  plot_title: np.array,
                  path_name: str):

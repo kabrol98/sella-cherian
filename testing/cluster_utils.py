@@ -104,10 +104,12 @@ class NoCluster:
         N = X.shape[0]
         return np.ones((N,), dtype=int)
 
-def split_on_cluster(matrix, assignments, labels):
+def split_on_cluster(matrix, assignments, labels, sheets):
     # TODO:Finish
     K = np.max(assignments) + 1
     # print(assignments)
     cluster_set = np.array([matrix[assignments==i] for i in range(K)])
     label_set = np.array([np.extract([assignments==i], labels) for i in range(K)])
-    return cluster_set, label_set
+    sheet_set = np.array([np.extract([assignments==i], sheets) for i in range(K)])
+    
+    return cluster_set, label_set, sheet_set

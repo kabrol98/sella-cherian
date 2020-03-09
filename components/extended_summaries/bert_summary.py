@@ -25,5 +25,5 @@ class BertSummary:
         res = bc.encode([data])
         # nlp = pipeline('feature-extraction')
         # res = nlp(data)
-        print(res)
+        # print(res)
         return res[0]

@@ -109,8 +109,8 @@ N = len(columns_vectorized)
 # TODO: Integrate Clustering Modules.
 if args.cluster == 'kmeans':
     Cluster = MiniBatchKMeans(n_clusters=int(sqrt(N)), max_iter=100)
-    CLUSTER_TYPE='KMeans'
-    clsuter_test=test_KMeans
+    CLUSTER_TYPE='KMEANS'
+    cluster_test=test_KMeans
 elif args.cluster == 'gmm':
     Cluster = GaussianMixture(n_components=int(sqrt(N)))
     CLUSTER_TYPE='EM'
@@ -146,23 +146,25 @@ if pkey not in params:
 # clusters = Cluster.fit_predict(columns_scaled)
 # cluster_set, label_set = split_on_cluster(columns_scaled, clusters, column_names)
 rng_max = int(sqrt(columns_scaled.shape[0]))
-rng = np.linspace(1,rng_max, num = min(rng_max, 20), dtype=np.int32)
+rng_min = 2 if CLUSTER_TYPE in ['KMEANS','EM'] else 1
+rng = np.linspace(rng_min,rng_max, num = min(rng_max-1, 20), dtype=np.int32)
 clusters = cluster_test(columns_scaled, pkey, params, rng)
 columns=columns_scaled
+N = columns_scaled.shape[0]
 db_scores = [davies_bouldin_score(columns, cluster) for cluster in clusters]
 ch_scores = [calinski_harabasz_score(columns, cluster) for cluster in clusters]
 s_scores = [silhouette_score(columns, cluster) for cluster in clusters]
-cluster_nums = [np.max(c)+1 for c in clusters]
+cluster_nums = [np.max(c)-np.min(c)+1 for c in clusters]
 scores = [db_scores,ch_scores,s_scores, cluster_nums]
 kvals = rng
-scorenames = ['davies_bouldin_score', 'calinski_harabasz_score', 'silhouette_score']
-f, axes = plt.subplots(3,1)
-for i in range(3):
+scorenames = ['davies_bouldin_score', 'calinski_harabasz_score', 'silhouette_score','Number of clusters']
+f, axes = plt.subplots(4,1)
+for i in range(4):
     ax = axes[i]
     ax = plot_scores(kvals, scores[i], scorenames[i],ax)
-plot_title=f'{NUM_FILES}_samples|{DATA_TYPE}|{SUMMARY_TYPE}|{CLUSTER_TYPE}|{pkey}'
-path_name=f'{NUM_FILES}_samples-{DATA_TYPE}-{SUMMARY_TYPE}-{CLUSTER_TYPE}-{pkey}'
+plot_title=f'{N}_columns|{DATA_TYPE}|{SUMMARY_TYPE}|{CLUSTER_TYPE}|{pkey}'
+path_name=f'{N}_columns-{DATA_TYPE}-{SUMMARY_TYPE}-{CLUSTER_TYPE}-{pkey}'
 plt.suptitle(plot_title)
-f.tight_layout()
+f.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.savefig(f'testing/cluster_results/{path_name}.png')
 print(f'Saved figure {plot_title} to {path_name}')

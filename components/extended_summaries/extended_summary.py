@@ -15,3 +15,5 @@ class ExtendedSummary:
         self.type = column.type
         self.vector = self.summary.vector
         self.header = column.metadata.sheet_name + '.'.join(map(lambda x: str(x.content),column.header_cells))
+        self.colname = ''.join(map(lambda x: str(x.content),column.header_cells))
+        self.sheetname=column.metadata.sheet_name 

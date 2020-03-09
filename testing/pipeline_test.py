@@ -32,6 +32,7 @@ from os import path
 from math import sqrt
 import pickle
 
+
 # Configure argument parser
 parser = argparse.ArgumentParser(description='''
                                 Tests sella pipeline on given excel spreadsheet.
@@ -39,12 +40,13 @@ parser = argparse.ArgumentParser(description='''
                                  into testing/confusion_results.
                                 Use command line arguments to configure different test types.
                                  ''')
-parser.add_argument('-f', '--filename', default='plasmidsDB', help='Specify Excel spreadsheet name in data_corpus directory (Omit .xlsx)')
+filegroup = parser.add_mutually_exclusive_group()
+filegroup.add_argument('-f', '--filenames', default=['plasmidsDB'], nargs="*", help='Specify Excel spreadsheet name in data_corpus directory (Omit .xlsx)')
+filegroup.add_argument('-S', '--file_sample', type=float, help="Pick number of files to randomly sample")
 # Configure summary type, data type, cluster type.
 parser.add_argument('-s', '--summary', default='extended', choices=['standard', 'extended'], help='Choose column summary type.')
 parser.add_argument('-d', '--data', default='numeric', choices=['numeric', 'text'], help='Choose between numerical and text data.')
-parser.add_argument('-c', '--cluster', default='none', choices=['none','kmeans','gmm','dbscan', 'optics'], help='Choose clustering method')
-parser.add_argument('-A', '--canalyse', default='none', action="store_true", help='Choose clustering method')
+parser.add_argument('-c', '--cluster', default='kmeans', choices=CLUSTER_OPTIONS, help='Choose clustering method')
 parser.add_argument('-V', '--vary', help=f'''
                     Choose varying parameter.
                     For reference: {CLUSTER_PARAMS}''')
@@ -140,11 +142,11 @@ SimilarityClass = CosineSimilarity
 
 cosine_set = SimilarityClass(clusters_nonzero).cosine_set
 
-save_path = f'{SUMMARY_TYPE}-{DATA_TYPE}-{CLUSTER_TYPE}-{KEY_VARY}'
+save_path = f'{SUMMARY_TYPE}-{DATA_TYPE}-{CLUSTER_TYPE}'
 plot_title = f'{SUMMARY_TYPE}||{DATA_TYPE}||{CLUSTER_TYPE}'
 
 # Plot results.
-plot_results(
+plot_cosine(
     cosine_set,
     labels_nonzero,
     plot_title,
