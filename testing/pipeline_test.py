@@ -11,7 +11,8 @@ from components.cell_labeling.cell_compact import ContentType
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.mixture import GaussianMixture
-# from sklearn.cluster import DBScan
+from sklearn.cluster import DBSCAN
+from sklearn.cluster import OPTICS
 
 # Silimarity Modules
 from components.similarity.cosine_similarity import CosineSimilarity
@@ -31,6 +32,21 @@ from os import path
 from math import sqrt
 import pickle
 
+# Configure argument parser
+parser = argparse.ArgumentParser(description='''
+                                Tests sella pipeline on given excel spreadsheet.
+                                Outputs Confusion matrix of column similarity test
+                                 into testing/confusion_results.
+                                Use command line arguments to configure different test types.
+                                 ''')
+parser.add_argument('-f', '--filename', default='plasmidsDB', help='Specify Excel spreadsheet name in data_corpus directory (Omit .xlsx)')
+# Configure summary type, data type, cluster type.
+parser.add_argument('-s', '--summary', default='extended', choices=['standard', 'extended'], help='Choose column summary type.')
+parser.add_argument('-d', '--data', default='numeric', choices=['numeric', 'text'], help='Choose between numerical and text data.')
+parser.add_argument('-c', '--cluster', default='none', choices=['none','kmeans','gmm','dbscan', 'optics'], help='Choose clustering method')
+parser.add_argument('-A', '--canalyse', default='none', action="store_true", help='Choose clustering method')
+
+args = parser.parse_args()
 # print(args)
 # Run Column Extraction.
 args = parse_args()
@@ -90,6 +106,12 @@ if args.cluster == 'kmeans':
 elif args.cluster == 'gmm':
     Cluster = GaussianMixture(n_components=int(sqrt(N)))
     CLUSTER_TYPE='EM_Clustering'
+elif args.cluster == 'dbscan':
+    Cluster = DBSCAN(eps=3, min_samples=2)
+    CLUSTER_TYPE='DB_Clustering'
+elif args.cluster == 'optics':
+    Cluster = OPTICS(min_samples=2)
+    CLUSTER_TYPE='OP_Clustering'
 else:
     Cluster = NoCluster()
     CLUSTER_TYPE='No_Clusters'
@@ -97,7 +119,13 @@ else:
 # Scale data using Z-norm
 columns_scaled = StandardScaler().fit_transform(columns_vectorized)
 
-# Cluster Data
+# add scaled testing
+canalyse_path = f'{args.filename}-{SUMMARY_TYPE}-{DATA_TYPE}'
+if args.canalyse:
+    pickle.dump(columns_scaled, open(f'testing/canalyse/{canalyse_path}.p', "wb"))
+
+
+
 clusters = Cluster.fit_predict(columns_scaled)
 cluster_set, label_set = split_on_cluster(columns_scaled, clusters, column_names)
 # Filter empty clusters.
