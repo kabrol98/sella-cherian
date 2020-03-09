@@ -17,13 +17,15 @@ from sklearn.cluster import MiniBatchKMeans
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import OPTICS
+from sklearn.cluster import Birch
 
 
 CLUSTER_PARAMS={
     'DBSCAN':{'eps':4, 'min_samples':2},
     'OPTICS':{'min_samples':2},
     'KMEANS':{'n_clusters':10},
-    'EM':{'n_components':10}
+    'EM':{'n_components':10},
+    'BIRCH':{'threshold':0.5,'branching_factor':50,'n_clusters':3}
 }
 
 def test_KMeans(columns, pkey, params, rng):
@@ -32,6 +34,16 @@ def test_KMeans(columns, pkey, params, rng):
     for val in rng:
         params[pkey] = val
         c_obj = MiniBatchKMeans(n_clusters=params['n_clusters'])
+        cluster_obj.append(c_obj)
+    clusters = [o.fit_predict(columns) for o in cluster_obj]
+    return clusters
+
+def test_BIRCH(columns, pkey, params, rng):
+    N = columns.shape[0]
+    cluster_obj= []
+    for val in rng:
+        params[pkey] = val
+        c_obj = Birch(threshold=params['threshold'],branching_factor=params['branching_factor'],n_clusters=params['n_clusters'])
         cluster_obj.append(c_obj)
     clusters = [o.fit_predict(columns) for o in cluster_obj]
     return clusters

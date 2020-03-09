@@ -36,7 +36,7 @@ import pickle
 from glob import glob
 from matplotlib import pyplot as plt
 
-CLUSTER_OPTIONS=['kmeans','gmm', 'dbscan', 'optics']
+CLUSTER_OPTIONS=['kmeans','gmm', 'dbscan', 'optics','birch']
 
 # Configure argument parser
 parser = argparse.ArgumentParser(description='''
@@ -46,8 +46,8 @@ parser = argparse.ArgumentParser(description='''
                                 Use command line arguments to configure different test types.
                                  ''')
 filegroup = parser.add_mutually_exclusive_group()
-filegroup.add_argument('-f', '--filenames', default=['plasmidsDB'], nargs="*", help='Specify Excel spreadsheet name in data_corpus directory (Omit .xlsx)')
-filegroup.add_argument('-S', '--file_sample', type=float, help="Pick number of files to randomly sample")
+# filegroup.add_argument('-f', '--filenames', default=['plasmidsDB'], nargs="*", help='Specify Excel spreadsheet name in data_corpus directory (Omit .xlsx)')
+filegroup.add_argument('-S', '--file_sample', default=5, type=float, help="Pick number of files to randomly sample")
 # Configure summary type, data type, cluster type.
 parser.add_argument('-s', '--summary', default='extended', choices=['standard', 'extended'], help='Choose column summary type.')
 parser.add_argument('-d', '--data', default='numeric', choices=['numeric', 'text'], help='Choose between numerical and text data.')
@@ -59,7 +59,7 @@ args = parser.parse_args()
 
 # Run Column Extraction.
 # Test for valid filenames
-filenames = sample_dataset(args.file_sample, args.filenames)
+filenames = sample_dataset(args.file_sample, None)
 NUM_FILES=len(filenames)
 for n in filenames:
     if not path.exists(n):
