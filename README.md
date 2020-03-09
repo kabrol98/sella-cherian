@@ -14,21 +14,4 @@ Recommend using conda for package managing
 ## Testing: testing/pipeline_test.py
 Run this python file as follows to generate a confusion matrix of column similarities across an excel spreadsheet.
 
-Usage: ```
-python testing/pipeline_test.py --help                    
-usage: pipeline_test.py [-h] [-f FILENAME] (-s | -e) (-n | -t)
-
-Tests sella pipeline on given excel spreadsheet. Outputs Confusion matrix of
-column similarity test into testing/confusion_results. Use command line
-arguments to configure different test types.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -f FILENAME, --filename FILENAME
-                        Specify Excel spreadsheet name in data_corpus
-                        directory (Omit .xlsx)
-  -s, --standard        Use standard column summaries.
-  -e, --extended        Use extended column summaries.
-  -n, --numeric         Run tests on numeric columns
-  -t, --text            Run tests on text columns
-  ```
+Usage:

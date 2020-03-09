@@ -43,13 +43,13 @@ class NumericalSummary:
         # self.file_metadata = file_metadata
         self.revise_features(column)
         vector = np.concatenate(([
-            # self.min,
-            # self.max,
+            self.min,
+            self.max,
             self.mean,
             self.median,
             self.std,
             self.skewRight,
             self.skewLeft,
-            ], self.mean * NUM_BINS * self.hist[0]))
+            ], self.hist[0]))
         # print(vector)
         self.vector = vector
