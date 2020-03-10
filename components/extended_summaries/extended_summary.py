@@ -16,4 +16,6 @@ class ExtendedSummary:
         self.vector = self.summary.vector
         self.header = column.metadata.sheet_name + '.'.join(map(lambda x: str(x.content),column.header_cells))
         self.colname = ''.join(map(lambda x: str(x.content),column.header_cells))
-        self.sheetname=column.metadata.sheet_name 
+        self.sheetname = column.metadata.sheet_name 
+        self.filename = column.metadata.file_name
+        self.id = self.filename[12:]+'.'+self.sheetname + '.' + self.colname

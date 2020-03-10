@@ -21,7 +21,7 @@ from sklearn.cluster import Birch
 
 
 CLUSTER_PARAMS={
-    'DBSCAN':{'eps':4, 'min_samples':2},
+    'DBSCAN':{'eps':0.9, 'min_samples':2},
     'OPTICS':{'min_samples':2},
     'KMEANS':{'n_clusters':10},
     'EM':{'n_components':10},
@@ -116,12 +116,13 @@ class NoCluster:
         N = X.shape[0]
         return np.ones((N,), dtype=int)
 
-def split_on_cluster(matrix, assignments, labels, sheets):
+def split_on_cluster(matrix, assignments, labels, sheets, filenames, ids):
     # TODO:Finish
     K = np.max(assignments) + 1
     # print(assignments)
     cluster_set = np.array([matrix[assignments==i] for i in range(K)])
     label_set = np.array([np.extract([assignments==i], labels) for i in range(K)])
     sheet_set = np.array([np.extract([assignments==i], sheets) for i in range(K)])
-
-    return cluster_set, label_set, sheet_set
+    file_set = np.array([np.extract([assignments==i], filenames) for i in range(K)])
+    id_set = np.array([np.extract([assignments==i], ids) for i in range(K)])
+    return cluster_set, label_set, sheet_set, file_set, id_set

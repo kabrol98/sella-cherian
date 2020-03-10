@@ -33,7 +33,7 @@ from math import sqrt
 from copy import deepcopy as cpy
 import csv
 
-
+GLOBAL_COUNT = 0
 # Configure argument parser
 parser = argparse.ArgumentParser(description='''
                                 Tests sella pipeline on given excel spreadsheet.
@@ -94,6 +94,8 @@ numeric_summary = [
 numeric_vectorized = np.array([c.vector for c in numeric_summary])
 numeric_column_names = [c.colname for c in numeric_summary]
 numeric_sheet_names = [c.sheetname for c in numeric_summary]
+numeric_file_names = [c.filename for c in numeric_summary]
+numeric_id = [c.id for c in numeric_summary]
 numeric_N = numeric_vectorized.shape[0]
 
 text_summary = [
@@ -103,6 +105,8 @@ text_vectorized = np.array([c.vector for c in text_summary])
 # text_column_names = [c.header for c in text_summary]
 text_column_names = [c.colname for c in text_summary]
 text_sheet_names = [c.sheetname for c in text_summary]
+text_file_names = [c.filename for c in text_summary]
+text_id = [c.id for c in text_summary]
 text_N = text_vectorized.shape[0]
 print(numeric_filtered.shape, len(numeric_summary), numeric_vectorized.shape)
 # Scale data using Z-norm
@@ -113,22 +117,38 @@ numeric_Cluster = MiniBatchKMeans(n_clusters=int(sqrt(numeric_N)), max_iter=100)
 text_Cluster = MiniBatchKMeans(n_clusters=int(sqrt(text_N)), max_iter=100)   
 
 numeric_clusters = numeric_Cluster.fit_predict(numeric_scaled)
-numeric_cluster_set, numeric_label_set, numeric_sheet_set = split_on_cluster(numeric_scaled, numeric_clusters, numeric_column_names, numeric_sheet_names)
+numeric_cluster_set, numeric_label_set, numeric_sheet_set, numeric_file_set, numeric_id_set = split_on_cluster(
+    numeric_scaled, 
+    numeric_clusters, 
+    numeric_column_names, 
+    numeric_sheet_names,
+    numeric_file_names,
+    numeric_id)
 
 text_clusters = text_Cluster.fit_predict(text_scaled)
-text_cluster_set, text_label_set, text_sheet_set = split_on_cluster(text_scaled, text_clusters, text_column_names, text_sheet_names)
+text_cluster_set, text_label_set, text_sheet_set, text_file_set, text_id_set = split_on_cluster(
+    text_scaled, 
+    text_clusters, 
+    text_column_names, 
+    text_sheet_names,
+    text_file_names,
+    text_id)
 
 # Filter empty clusters.
 nz_filter = list(map(np.any, numeric_cluster_set))
 numeric_clusters_nonzero = numeric_cluster_set[nz_filter]
 numeric_labels_nonzero = numeric_label_set[nz_filter]
 numeric_sheets_nonzero = numeric_sheet_set[nz_filter]
+numeric_files_nonzero = numeric_file_set[nz_filter]
+numeric_id_nonzero = numeric_id_set[nz_filter]
 numeric_n_clusters = numeric_clusters_nonzero.shape[0]
 
 nz_filter = list(map(np.any, text_cluster_set))
 text_clusters_nonzero = text_cluster_set[nz_filter]
 text_labels_nonzero = text_label_set[nz_filter]
 text_sheets_nonzero = text_sheet_set[nz_filter]
+text_files_nonzero = text_file_set[nz_filter]
+text_id_nonzero = text_id_set[nz_filter]
 text_n_clusters = text_clusters_nonzero.shape[0]
 print("Ran Clusters...")
 # Run Similarity Analysis
@@ -139,17 +159,15 @@ numeric_cosine_set = SimilarityClass(numeric_clusters_nonzero).cosine_set
 text_cosine_set = SimilarityClass(text_clusters_nonzero).cosine_set
 print("Generated cosine sets")
 graph_row = {
-    'A_sheet_name':'','A_column_name':'','A_data_type':'',
-    'B_sheet_name':'','B_column_name':'','B_data_type':'',
+    'A_id':'',
+    'B_id':'',
     'score':-1
     }
 node_row = {
-    'sheet_name':'','column_name':'','data_type':''
+    'id':'','file_name':'','sheet_name':'','column_name':'','data_type':''
 }
 rel_rows = []
 node_rows = []
-nodes = dict()
-
 graph_row['A_data_type'] = 'numeric'
 graph_row['B_data_type'] = 'numeric'
 node_row['data_type'] = 'numeric'
@@ -157,23 +175,25 @@ for c in range(numeric_n_clusters):
     cluster = numeric_clusters_nonzero[c]
     colnames = numeric_labels_nonzero[c]
     sheetnames = numeric_sheets_nonzero[c]
+    filenames = numeric_files_nonzero[c]
+    ids = numeric_id_nonzero[c]
     cosines = numeric_cosine_set[c]
     n_cols = cluster.shape[0]
     for i in range(n_cols):
+        node_row['id'] = ids[i]
+        node_row['file_name'] = filenames[i]
         node_row['sheet_name'] = sheetnames[i]
         node_row['column_name'] = colnames[i]
         node_rows.append(cpy(node_row))
-        for j in range(i,n_cols):
-            graph_row['A_sheet_name'] = sheetnames[i]
-            graph_row['A_column_name'] = colnames[i]
-            graph_row['B_column_name'] = colnames[j]
+        for j in range(i+1,n_cols):
+            graph_row['A_id'] = ids[i]
+            graph_row['B_id'] = ids[j]
             graph_row['score'] = cosines[i][j]
             rel_rows.append(cpy(graph_row))
             
-            graph_row['B_sheet_name'] = sheetnames[j]
-            graph_row['B_column_name'] = colnames[i]
-            graph_row['A_column_name'] = colnames[j]
-            graph_row['score'] = cosines[i][j]
+            graph_row['A_id'] = ids[j]
+            graph_row['B_id'] = ids[i]
+            graph_row['score'] = cosines[j][i]
             rel_rows.append(cpy(graph_row))
 
 graph_row['A_data_type'] = 'text'
@@ -183,26 +203,36 @@ for c in range(text_n_clusters):
     cluster = text_clusters_nonzero[c]
     colnames = text_labels_nonzero[c]
     sheetnames = text_sheets_nonzero[c]
+    filenames = text_files_nonzero[c]
+    ids = text_id_nonzero[c]
     cosines = text_cosine_set[c]
     n_cols = cluster.shape[0]
     for i in range(n_cols):
+        node_row['id'] = ids[i]
+        node_row['file_name'] = filenames[i]
         node_row['sheet_name'] = sheetnames[i]
         node_row['column_name'] = colnames[i]
         node_rows.append(cpy(node_row))
-        for j in range(i,n_cols):
-            graph_row['A_sheet_name'] = sheetnames[i]
-            graph_row['A_column_name'] = colnames[i]
-            graph_row['B_column_name'] = colnames[j]
+        for j in range(i+1,n_cols):
+            graph_row['A_id'] = ids[i]
+            graph_row['B_id'] = ids[j]
             graph_row['score'] = cosines[i][j]
             rel_rows.append(cpy(graph_row))
             
-            graph_row['A_sheet_name'] = sheetnames[j]
-            graph_row['B_column_name'] = colnames[i]
-            graph_row['A_column_name'] = colnames[j]
-            graph_row['score'] = cosines[i][j]
+            graph_row['A_id'] = ids[j]
+            graph_row['B_id'] = ids[i]
+            graph_row['score'] = cosines[j][i]
             rel_rows.append(cpy(graph_row))
 
 print("Generated graph...")
+COUNT = 0
+nodes = set()
+for row in node_rows:
+    if row['id'] in nodes:
+        row['ID'] += str(COUNT)
+        COUNT += 1
+    nodes.add(row['id'])
+
 nodes_path = f'testing/graphs/{args.file_sample}_samples-{numeric_N}_numeric-{text_N}_text-nodes.csv'
 rel_path = f'testing/graphs/{args.file_sample}_samples-{numeric_N}_numeric-{text_N}_text-relationships.csv'
 # print(node_rows[0])
