@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+import matplotlib.patches as mpatches
 
 x_array = []
 
@@ -56,39 +57,48 @@ for line in file:
 
 file.close()
 
-
 f, axes = plt.subplots(4,1)
+
+plt.suptitle("Cluster Method Performance")
 
 ax = axes[0]
 ax.plot(x_array, db_scores_kmeans, 'r')
 ax.plot(x_array, db_scores_em, 'b')
 ax.plot(x_array, db_scores_dbscan, 'g')
 ax.plot(x_array, db_scores_optics, 'y')
-ax.set_ylabel("db_scores")
+ax.set_ylabel("davies bouldin", fontsize=6)
 ax.set_xticklabels([])
+red_patch = mpatches.Patch(color='red', label='kmeans')
+ax.legend(handles=[red_patch])
 
 ax = axes[1]
 ax.plot(x_array, ch_scores_kmeans, 'r')
 ax.plot(x_array, ch_scores_em, 'b')
 ax.plot(x_array, ch_scores_dbscan, 'g')
 ax.plot(x_array, ch_scores_optics, 'y')
-ax.set_ylabel("ch_scores")
+ax.set_ylabel("calinski harabasz", fontsize=6)
 ax.set_xticklabels([])
+blue_patch = mpatches.Patch(color='blue', label='em')
+ax.legend(handles=[blue_patch])
 
 ax = axes[2]
 ax.plot(x_array, s_scores_kmeans, 'r')
 ax.plot(x_array, s_scores_em, 'b')
 ax.plot(x_array, s_scores_dbscan, 'g')
 ax.plot(x_array, s_scores_optics, 'y')
-ax.set_ylabel("s_scores")
+ax.set_ylabel("silhouette", fontsize=6)
 ax.set_xticklabels([])
+green_patch = mpatches.Patch(color='green', label='dbscan')
+ax.legend(handles=[green_patch])
 
 ax = axes[3]
 ax.plot(x_array, cluster_nums_kmeans, 'r')
 ax.plot(x_array, cluster_nums_em, 'b')
 ax.plot(x_array, cluster_nums_dbscan, 'g')
 ax.plot(x_array, cluster_nums_optics, 'y')
-ax.set_ylabel("cluster_nums")
+ax.set_ylabel("cluster nums", fontsize=6)
+yellow_patch = mpatches.Patch(color='yellow', label='optics')
+ax.legend(handles=[yellow_patch])
 
 f.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.savefig('compare.png')
