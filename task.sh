@@ -1,15 +1,12 @@
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
-python cluster_test.py -S 10 -s extended -d numeric -c gmm -V n_components
+python graph_generate.py -S 10
+python graph_generate.py -S 10
+python graph_generate.py -S 10
+python graph_generate.py -S 10
+python graph_generate.py -S 10
+python graph_generate.py -S 10
+python graph_generate.py -S 10
+python graph_generate.py -S 10
+python graph_generate.py -S 10
+python graph_generate.py -S 10
+python graph_generate.py -S 10
+python graph_generate.py -S 10
