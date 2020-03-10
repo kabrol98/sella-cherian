@@ -1,0 +1,15 @@
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples
+python cluster_test.py -S 10 -s extended -d numeric -c optics -V min_samples

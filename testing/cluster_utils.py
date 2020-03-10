@@ -62,7 +62,7 @@ def test_DBSCAN(columns,pkey, params, rng):
     cluster_obj= []
     for val in rng:
         params[pkey] = val
-        c_obj = DBSCAN(eps=params['eps'])
+        c_obj = DBSCAN(eps=params['eps'], min_samples=params['min_samples'])
         cluster_obj.append(c_obj)
     clusters = [o.fit_predict(columns) for o in cluster_obj]
     # print(columns.shape, clusters[0].shape)
@@ -89,7 +89,7 @@ class LSHCluster:
         self.K = k
         self.r = r
         self.b = b
-        
+
     def fit_transform(self, X):
         N = X.shape[0]
         names = np.arange(0,N,1)
@@ -123,5 +123,5 @@ def split_on_cluster(matrix, assignments, labels, sheets):
     cluster_set = np.array([matrix[assignments==i] for i in range(K)])
     label_set = np.array([np.extract([assignments==i], labels) for i in range(K)])
     sheet_set = np.array([np.extract([assignments==i], sheets) for i in range(K)])
-    
+
     return cluster_set, label_set, sheet_set

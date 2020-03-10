@@ -35,6 +35,7 @@ from math import sqrt
 import pickle
 from glob import glob
 from matplotlib import pyplot as plt
+import collections
 
 CLUSTER_OPTIONS=['kmeans','gmm', 'dbscan', 'optics','birch']
 
@@ -146,27 +147,37 @@ if pkey not in params:
 # clusters = Cluster.fit_predict(columns_scaled)
 # cluster_set, label_set = split_on_cluster(columns_scaled, clusters, column_names)
 rng_max = int(sqrt(columns_scaled.shape[0]))
-rng_min = 2 if CLUSTER_TYPE in ['KMEANS','EM'] else 2
+rng_min = 2 if CLUSTER_TYPE in ['KMEANS','EM'] else 1
 rng = np.linspace(rng_min,rng_max, num = min(rng_max-1, 20), dtype=np.int32)
 # rng = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 clusters = cluster_test(columns_scaled, pkey, params, rng)
 columns=columns_scaled
 N = columns_scaled.shape[0]
-print("clusters: ", clusters)
-# db_scores = [davies_bouldin_score(columns, cluster) for cluster in clusters]
-# ch_scores = [calinski_harabasz_score(columns, cluster) for cluster in clusters]
-# s_scores = [silhouette_score(columns, cluster) for cluster in clusters]
-# cluster_nums = [np.max(c)-np.min(c)+1 for c in clusters]
-# scores = [db_scores,ch_scores,s_scores, cluster_nums]
-# kvals = rng
-# scorenames = ['davies_bouldin_score', 'calinski_harabasz_score', 'silhouette_score','Number of clusters']
-# f, axes = plt.subplots(4,1)
-# for i in range(4):
-#     ax = axes[i]
-#     ax = plot_scores(kvals, scores[i], scorenames[i],ax)
-# plot_title=f'{N}_columns|{DATA_TYPE}|{SUMMARY_TYPE}|{CLUSTER_TYPE}|{pkey}'
-# path_name=f'{N}_columns-{DATA_TYPE}-{SUMMARY_TYPE}-{CLUSTER_TYPE}-{pkey}'
-# plt.suptitle(plot_title)
-# f.tight_layout(rect=[0, 0.03, 1, 0.95])
-# plt.savefig(f'testing/cluster_results/{path_name}.png')
-# print(f'Saved figure {plot_title} to {path_name}')
+record = []
+for index, cluster in enumerate(clusters):
+    if len(cluster) == 0 or len(collections.Counter(cluster)) == 1:
+        clusters = clusters[:index] + clusters[index+1:]
+    else:
+        record.append(rng[index])
+rng = record
+print(rng, clusters)
+if len(clusters) != 0:
+    db_scores = [davies_bouldin_score(columns, cluster) for cluster in clusters]
+    ch_scores = [calinski_harabasz_score(columns, cluster) for cluster in clusters]
+    s_scores = [silhouette_score(columns, cluster) for cluster in clusters]
+    cluster_nums = [np.max(c)-np.min(c)+1 for c in clusters]
+    scores = [db_scores,ch_scores,s_scores, cluster_nums]
+    kvals = rng
+    scorenames = ['davies_bouldin_score', 'calinski_harabasz_score', 'silhouette_score','Number of clusters']
+    f, axes = plt.subplots(4,1)
+    for i in range(4):
+        ax = axes[i]
+        ax = plot_scores(kvals, scores[i], scorenames[i],ax)
+    plot_title=f'{N}_columns|{DATA_TYPE}|{SUMMARY_TYPE}|{CLUSTER_TYPE}|{pkey}'
+    path_name=f'{N}_columns-{DATA_TYPE}-{SUMMARY_TYPE}-{CLUSTER_TYPE}-{pkey}'
+    plt.suptitle(plot_title)
+    f.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(f'testing/cluster_results/{path_name}.png')
+    print(f'Saved figure {plot_title} to {path_name}')
+else:
+    print("there are no valid clusters")
