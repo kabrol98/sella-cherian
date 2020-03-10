@@ -21,19 +21,19 @@ from sklearn.cluster import Birch
 
 
 CLUSTER_PARAMS={
-    'DBSCAN':{'eps':0.9, 'min_samples':2},
-    'OPTICS':{'min_samples':2},
-    'KMEANS':{'n_clusters':10},
-    'EM':{'n_components':10},
-    'BIRCH':{'threshold':0.5,'branching_factor':50,'n_clusters':3}
+    'DBSCAN':{'eps':lambda N: 0.9, 'min_samples':lambda N: 1},
+    'OPTICS':{'min_samples':lambda N:2},
+    'KMEANS':{'n_clusters':lambda N: int(sqrt(N))},
+    'EM':{'n_components':lambda N: int(sqrt(N))}
+    # 'BIRCH':{'threshold':lambda N: 0.5,'branching_factor':lambda N: 50,'n_clusters':lambda N: 3}
 }
 
 def test_KMeans(columns, pkey, params, rng):
     N = columns.shape[0]
     cluster_obj= []
     for val in rng:
-        params[pkey] = val
-        c_obj = MiniBatchKMeans(n_clusters=params['n_clusters'])
+        params[pkey] = lambda N: val
+        c_obj = MiniBatchKMeans(n_clusters=params['n_clusters'](N))
         cluster_obj.append(c_obj)
     clusters = [o.fit_predict(columns) for o in cluster_obj]
     return clusters
@@ -42,8 +42,8 @@ def test_BIRCH(columns, pkey, params, rng):
     N = columns.shape[0]
     cluster_obj= []
     for val in rng:
-        params[pkey] = val
-        c_obj = Birch(threshold=params['threshold'],branching_factor=params['branching_factor'],n_clusters=params['n_clusters'])
+        params[pkey] = lambda N: val
+        c_obj = Birch(threshold=params['threshold'](N),branching_factor=params['branching_factor'](N),n_clusters=params['n_clusters'](N))
         cluster_obj.append(c_obj)
     clusters = [o.fit_predict(columns) for o in cluster_obj]
     return clusters
@@ -52,17 +52,18 @@ def test_EM(columns, pkey, params, rng):
     N = columns.shape[0]
     cluster_obj= []
     for val in rng:
-        params[pkey] = val
-        c_obj = GaussianMixture(n_components=params['n_components'])
+        params[pkey] = lambda N: val
+        c_obj = GaussianMixture(n_components=params['n_components'](N))
         cluster_obj.append(c_obj)
     clusters = [o.fit_predict(columns) for o in cluster_obj]
     return clusters
 
 def test_DBSCAN(columns,pkey, params, rng):
     cluster_obj= []
+    N = columns.shape[0]
     for val in rng:
-        params[pkey] = val
-        c_obj = DBSCAN(eps=params['eps'], min_samples=params['min_samples'])
+        params[pkey] = lambda N: val
+        c_obj = DBSCAN(eps=params['eps'](N), min_samples=params['min_samples'](N))
         cluster_obj.append(c_obj)
     clusters = [o.fit_predict(columns) for o in cluster_obj]
     # print(columns.shape, clusters[0].shape)
@@ -70,9 +71,10 @@ def test_DBSCAN(columns,pkey, params, rng):
 
 def test_OPTICS(columns, pkey, params, rng):
     cluster_obj= []
+    N = columns.shape[0]
     for val in rng:
-        params[pkey] = val
-        c_obj = OPTICS(min_samples=params['min_samples'])
+        params[pkey] = lambda N: val
+        c_obj = OPTICS(min_samples=params['min_samples'](N))
         cluster_obj.append(c_obj)
     clusters = [o.fit_predict(columns) for o in cluster_obj]
     # print(columns.shape, clusters[0].shape)
