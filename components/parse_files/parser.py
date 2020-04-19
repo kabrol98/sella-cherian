@@ -10,12 +10,10 @@ from components.cell_labeling.cell_extended import CellExtended
 from components.extract_column.extract_helper import ExtractHelper
 from components.parse_files.metadata import ColumnMetaData
 
-
 class CellLabeled:
     def __init__(self, tag, cell):
         self.tag = tag
         self.cell = cell
-
 
 class Parser:
     def __init__(self, file_path: str, model):
@@ -33,7 +31,6 @@ class Parser:
             print("File must be either xlsx or xls")
             return False
         return True
-
 
     def set_rules(self, cells):
         result = []

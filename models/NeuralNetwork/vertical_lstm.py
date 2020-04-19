@@ -23,8 +23,6 @@ data_col_names = ["is_blank", "bold_font","below_blank","has_merge_cell","above_
 
 FEATURE_LENGTH = len(data_col_names)
 
-
-
 def get_lists(df, row_idxs, is_label = False):
     raw_df = df.iloc[row_idxs]
     if is_label:
@@ -154,5 +152,3 @@ scores = model.evaluate(x_test, to_categorical(y_test, CLASS_NUM))
 predictions = model.predict(x_test)
 print(confusion_matrix(y_test.flatten(), y_pred=np.apply_along_axis(lambda arr: np.argmax(arr), 1, predictions.reshape(-1, predictions.shape[-1]))))
 print(f"{model.metrics_names[1]}: {scores[1] * 100}")
-
-
