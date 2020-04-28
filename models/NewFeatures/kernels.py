@@ -76,19 +76,22 @@ def generate_all_kernels():
                 cand = (row.filename, row.sheetname)
             except:
                 print('EOF reached')
+                # end reached
+                generate_kernels(df_read, dat_df, begin, end+1, kernel_set)
+                print(f'reached f{cand}')
                 break
             # print(cand, i)
             if cand[0] == i[0] and cand[1] == i[1]:
                 end += 1
             else:
                 # end reached
-                generate_kernels(df_read, dat_df, begin, end, kernel_set)
+                generate_kernels(df_read, dat_df, begin, end+1, kernel_set)
                 print(f'reached f{cand}')
                 begin = end+1
                 break
     print(dat_df.head())
     outpath = f'data_corpus/training_files/lv{KERNEL_LEVEL}_kernels.csv'
-    dat_df.to_csv(outpath)
+    dat_df.to_csv(outpath, index=None)
         
         
 # generates is_none matrix, performs kernel convolutions
