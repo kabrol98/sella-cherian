@@ -56,5 +56,4 @@ for i in range(3):
     axes[i][1].get_yaxis().set_visible(False)
     
 f.tight_layout()
-plt.show()
-    
+plt.savefig('kernel_confusion.png')
