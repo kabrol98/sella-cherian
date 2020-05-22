@@ -9,16 +9,18 @@ attributes of the data distribution (normalized histogram, range, mean/median/st
 """
 
 # Summaries Modules:
-from components.column_summaries.features import Features
 from components.extended_summaries.extended_summary import ExtendedSummary
 from components.cell_labeling.cell_compact import ContentType
 
+from sklearn.preprocessing import StandardScaler
 
 from enum import Enum
 import numpy as np
 
 
 def summaries(results):
+    SummaryClass = ExtendedSummary
+    SUMMARY_TYPE = 'extended_summary'
     numeric_filtered = np.extract([x.type==ContentType.NUMERIC for x in results], results)
     text_filtered = np.extract([x.type==ContentType.STRING for x in results], results)
 
