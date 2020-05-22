@@ -20,9 +20,9 @@ from sklearn.metrics import silhouette_score
 from sklearn.cluster import OPTICS
 
 # Testing Utilities
-from testing.testing_utils import *
-from testing.cluster_utils import *
-from testing.plot_utils import *
+from testing.test_utils.testing_utils import *
+from testing.test_utils.cluster_utils import *
+from testing.test_utils.plot_utils import *
 
 # Python Modules
 from enum import Enum

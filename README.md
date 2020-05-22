@@ -1,20 +1,11 @@
-# sella
+# Sella
 A large-scale relationships discovery tool for file-based tabular datasets.  
 
 ## branch: rework
-A revised system of previous codebase
+The rework branch contains the codebase for the python-based sella system outlined in the paper submitted to the SSDBM conference in March 2020. It also contains a large corpus of Excel spreadsheets that can be used for further development and testing.
 
-## develop and build
-Recommend using conda for package managing
-* Use `conda list --export > package-list.txt` to freeze requirements
-* Use `conda create -n env --file package-list.txt` to recreate virtual environment
-* Use `conda activate ./env/` to activate environment
-* Use 'conda install python=3.6' since we used tensorflow package
-* Use 'python -m pip install --upgrade pip' to ensure pip is compatible with python
-* Use 'pip install --user --requirement requirements.txt' to install all libraries
-* Use `conda deactivate` to exit environment
+## BERT installation
+In order to run Sella, you will need to successfully install and run the bert-as-service application found here: https://github.com/hanxiao/bert-as-service. More detailed instructions regarding the required environment can be found in BERT_INSTALL.md
 
 ## Testing: testing/pipeline_test.py
 Run this python file as follows to generate a confusion matrix of column similarities across an excel spreadsheet.
-
-Usage:

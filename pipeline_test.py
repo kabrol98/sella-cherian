@@ -19,7 +19,7 @@ from components.similarity.cosine_similarity import CosineSimilarity
 # TODO: Add similarity modules for testing purposes.
 
 # Testing Utilities
-from testing.testing_utils import *
+from testing.test_utils.testing_utils import *
 
 # Python Modules
 from enum import Enum
