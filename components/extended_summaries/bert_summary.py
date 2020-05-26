@@ -9,7 +9,6 @@ from components.parse_files.metadata import ColumnMetaData
 class BertSummary:
     
     def __init__ (self, column: Column):
-        self.column_raw = column
         self.header_serialized = self.serialize(column.header_cells)
         self.data_serialized = self.serialize(column.content_cells)
         self.vector = self.get_bert_summary(self.header_serialized + self.data_serialized)

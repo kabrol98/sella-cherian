@@ -12,6 +12,7 @@ class ExtendedSummary:
             self.summary = NumericalSummary(column)
         else:
             self.summary = BertSummary(column)
+        self.column_raw = column
         self.type = column.type
         self.vector = self.summary.vector
         self.header = column.metadata.sheet_name + '.'.join(map(lambda x: str(x.content),column.header_cells))
