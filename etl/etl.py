@@ -60,7 +60,7 @@ if stage == 'extraction':
 
 summary_results = summaries(extraction_results)
 if stage == 'summaries':
-    save_stage(stage,sample_size, extraction_results)
+    save_stage(stage,sample_size, summary_results)
     exit()
 
 print(f'Stage {stage} not yet supported')
