@@ -25,5 +25,7 @@ def clustering(data):
     text_clusters, text_ids = split_on_cluster(text_data, text_assignments, text_names)
     # print(numeric_clusters)
     return {'numeric_clusters': numeric_clusters,
-             'text_clusters': text_clusters
+             'text_clusters': text_clusters,
+             'text_names': text_ids,
+             'numeric_names': numeric_ids
              }

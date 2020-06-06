@@ -16,7 +16,10 @@ import keras.backend as K
 
 from testing.test_utils.testing_utils import sample_dataset
 
-def extract(N):
+def extract(N, dir):
+    if dir is not None:
+        # TODO: handle this.
+        print('unhandled')
     # Test for valid filenames
     filenames = sample_dataset(N, None)
     NUM_FILES=len(filenames)

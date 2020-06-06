@@ -11,13 +11,13 @@ NOTE: for any stage apart from extraction, bert-serving must be running on your 
 # from sklearn.cluster import MiniBatchKMeans
 # from sklearn.mixture import GaussianMixture
 # from sklearn.cluster import DBSCAN
-
+import numpy as np
 from etl.extract import extract
 from etl.summaries import summaries
 from etl.clustering import clustering
 # from clustering import clustering
 from etl.similarity import similarity
-
+import csv
 # Python Modules
 import argparse
 # from os import path
@@ -74,8 +74,18 @@ if stage == 'clustering':
     exit()
 
 similarity_results = similarity(clustering_results)
-outpath = f"etl/tmp/etl_graph_{sample_size}_{date.today().isoformat()}.csv"
-np.asarray(similarity_results).savetxt(outpath, a, delimiter=",")
+outpath_column = f"etl/tmp/etl_column_graph_{sample_size}_{date.today().isoformat()}.csv"
+arr = np.asarray(similarity_results['column'])
+print(arr)
+np.savetxt(outpath, arr ,fmt='%s', delimiter=",")
+outpath_sheet = f"etl/tmp/etl_sheet_graph_{sample_size}_{date.today().isoformat()}.csv"
+arr = np.asarray(similarity_results['sheet'])
+print(arr)
+np.savetxt(outpath, arr ,fmt='%s', delimiter=",")
+
+# with open(outpath, 'wb') as f:
+#     csv.writer(f).writerows(similarity_results)
+
 exit()
 
 print(f'Stage {stage} not yet supported')
