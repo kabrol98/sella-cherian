@@ -20,6 +20,7 @@ from components.similarity.cosine_similarity import CosineSimilarity
 
 # Testing Utilities
 from testing.test_utils.testing_utils import *
+from testing.test_utils.cluster_utils import *
 
 # Python Modules
 from enum import Enum

@@ -14,8 +14,9 @@ NOTE: for any stage apart from extraction, bert-serving must be running on your 
 
 from etl.extract import extract
 from etl.summaries import summaries
+from etl.clustering import clustering
 # from clustering import clustering
-# from similarity import similarity
+from etl.similarity import similarity
 
 # Python Modules
 import argparse
@@ -38,7 +39,10 @@ def parse_etl_args():
     stage.add_argument('-summaries', dest='stage', action="store_const", const=1)
     stage.add_argument('-clustering', dest='stage', action="store_const", const=2)
     stage.add_argument('-similarity', dest='stage', action="store_const", const=3)
-    parser.set_defaults(stage=0)
+    
+    parser.add_argument('-start', dest='start', type=int)
+    parser.add_argument('-source', '--dir', dest="directory", default=None)
+    parser.set_defaults(stage=0, start=0)
     args = parser.parse_args()
     return args
 
@@ -51,9 +55,10 @@ def save_stage(stage,sample_size, data):
 args = parse_etl_args()
 stage = STAGE_NAMES[args.stage]
 sample_size = args.file_sample
+dir = args.directory
 
 # Stage one: extraction
-extraction_results = extract(sample_size)
+extraction_results = extract(sample_size, dir)
 if stage == 'extraction':
     save_stage(stage,sample_size, extraction_results)
     exit()
@@ -62,6 +67,16 @@ summary_results = summaries(extraction_results)
 if stage == 'summaries':
     save_stage(stage,sample_size, summary_results)
     exit()
+    
+clustering_results = clustering(summary_results)
+if stage == 'clustering':
+    save_stage(stage,sample_size, clustering_results)
+    exit()
+
+similarity_results = similarity(clustering_results)
+outpath = f"etl/tmp/etl_graph_{sample_size}_{date.today().isoformat()}.csv"
+np.asarray(similarity_results).savetxt(outpath, a, delimiter=",")
+exit()
 
 print(f'Stage {stage} not yet supported')
 exit()

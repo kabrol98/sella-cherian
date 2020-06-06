@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import glob
 from sklearn.utils.random import sample_without_replacement as sample
-from LocalitySensitiveHashing import LocalitySensitiveHashing
+# from LocalitySensitiveHashing import LocalitySensitiveHashing
 import argparse
 
 # def parse_args():

@@ -48,4 +48,4 @@ def summaries(results):
     # Scale data using Z-norm
     numeric_scaled = StandardScaler().fit_transform(numeric_vectorized)
     text_scaled = StandardScaler().fit_transform(text_vectorized)
-    return {'numeric': numeric_scaled, 'text': text_scaled}
+    return {'numeric': numeric_scaled, 'text': text_scaled, 'numeric_names': numeric_id, 'text_names': text_id}
