@@ -26,7 +26,7 @@ def score_fn(estimator, X):
 
 N = len(data['numeric'])
 print(f'{N} columns.')
-param_grid = { 'min_samples': np.linspace(4,6,num=40,dtype=int)}
+param_grid = { 'min_samples': range(1,4)}
 search = GridSearchCV(OPTICS(), param_grid, scoring = score_fn,cv=2)
 search.fit(data['numeric'])
 

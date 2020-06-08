@@ -1,3 +1,8 @@
+DESCRIPTION = """
+Stage 3 will take the set of column summary feature vectors 
+and cluster them using a distance metric, reducing the candidate pairs 
+to test for similarity by a factor of sqrt(N).
+"""
 import numpy as np
 from sklearn.cluster import KMeans
 from math import sqrt
@@ -25,5 +30,7 @@ def clustering(data):
     text_clusters, text_ids = split_on_cluster(text_data, text_assignments, text_names)
     # print(numeric_clusters)
     return {'numeric_clusters': numeric_clusters,
-             'text_clusters': text_clusters
+             'text_clusters': text_clusters,
+             'text_names': text_ids,
+             'numeric_names': numeric_ids
              }

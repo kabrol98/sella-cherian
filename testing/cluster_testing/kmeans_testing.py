@@ -34,15 +34,15 @@ def get_best_score(dataset,n):
     means = search.cv_results_['mean_test_score']
     std = search.cv_results_['std_test_score']
     params = search.cv_results_['params']
-    best = np.argmin(means)
+    best = np.argmax(means)
     print(f'best score with {params[best]} is {means[best]}')
+    
     return (params[best], means[best])
 
 
 N = len(data['numeric'])
 nums = np.linspace(N/3, N, 30, dtype=int)
 print(nums)
-exit()
 params = []
 scores = []
 for i in nums:
@@ -64,6 +64,6 @@ for x,y, s in zip(nums, params, scores):
                  textcoords="offset points", # how to position the text
                  xytext=(0,10), # distance from text to points (x,y)
                  ha='center') # horizontal alignment can be left, right or center
-plt.xlabel('Number of Clusters')
+plt.xlabel('Number of Datapoints')
 plt.ylabel('Best n_clusters')
 plt.savefig('testing/cluster_testing/kmeans_cluster_best')

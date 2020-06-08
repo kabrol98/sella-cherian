@@ -10,15 +10,28 @@ from components.parse_files.parser import Parser
 from components.utils.test import SimpleTest
 
 from os import path
+import glob
 import keras
 import tensorflow as tf
 import keras.backend as K
+import numpy as np
+from sklearn.utils.random import sample_without_replacement as sample
 
-from testing.test_utils.testing_utils import sample_dataset
 
-def extract(N):
+def sample_dataset(s, fpath):
+    filenames = np.array(glob.glob(fpath))
+    n = len(filenames)
+    if n == 0:
+        print('error: please enter a valid source directory')
+        exit()
+    s = min(s,n)
+    index = sample(n, s)
+    return filenames[index]
+
+def extract(N, dir):
+    fpath = 'data_corpus/*.xlsx' if dir is None else f'{dir}/*.xlsx'
     # Test for valid filenames
-    filenames = sample_dataset(N, None)
+    filenames = sample_dataset(N, fpath)
     NUM_FILES=len(filenames)
     for n in filenames:
         if not path.exists(n):
