@@ -27,4 +27,4 @@ class CosineSimilarity:
         if self.verbose:
             print("Computed Cosines...")
         self.cosine_set = cosine_set
-    
+        return cosine_set

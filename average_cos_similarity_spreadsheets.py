@@ -10,11 +10,15 @@ from components.cell_labeling.cell_compact import ContentType
 # Clustering Modules
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import MiniBatchKMeans
+import matplotlib.pyplot as plt
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import OPTICS
 
 import openpyxl
+import pyexcel as p
+from os import listdir
+from os.path import isfile, join
 
 # Silimarity Modules
 from components.similarity.cosine_similarity import CosineSimilarity
@@ -59,12 +63,8 @@ SummaryClass = Features
 SUMMARY_TYPE = 'standard_summary'
 
 filename = "training_data/row_containment/data/data_651032503351853.xlsx"
-filenames = ["training_data/row_containment/data/data_752184637536815.xlsx", "training_data/row_containment/data/data_651032503351853.xlsx", "training_data/row_containment/spreadsheet/11a10.xlsx", ]
+filenames = ["training_data/row_containment/spreadsheet/" + f for f in listdir("training_data/row_containment/spreadsheet") if isfile(join("training_data/row_containment/spreadsheet", f)) and "xlsx" in f] + ["training_data/row_containment/data/" + f for f in listdir("training_data/row_containment/data") if isfile(join("training_data/row_containment/data", f)) and "xlsx" in f]
 size_files = {}
-
-# if not path.exists(filename):
-#     print(f'File {filename} does not exist!')
-# assert path.exists(filename)
 
 model_path = "models/NeuralNetwork/vertical_lstm.h5"
 print(f'Extracting columns from {filename}...')
@@ -163,7 +163,6 @@ def split_on_cluster(columns, clusters, column_names):
     return np.array(cluster_set), np.array(name_set), cluster_results.keys()
 
 cluster_set, name_set, label_set = split_on_cluster(columns_scaled, clusters, column_names)
-print(name_set)
 
 # Filter empty clusters.
 # nz_filter = list(map(np.any, cluster_set))
@@ -183,28 +182,21 @@ for set in range(len(name_set)):
         for j in range(i + 1, len(name_set[set])):
             file1 = name_set[set][i]
             file2 = name_set[set][j]
-            if file1 == file2:
-                continue
-            if file2 < file1:
-                temp = file2
-                file2 = file1
-                file1 = temp
-            if file1 + "__" + file2 not in my_result:
-                my_result[file1 + "__" + file2] = 0
-            my_result[file1 + "__" + file2] += cosine_set[set][i][j] / (size_files[file1] * size_files[file2])
+            if (file1, file2) not in my_result:
+                my_result[(file1, file2)] = 0
+                my_result[(file2, file1)] = 0
+            my_result[(file1, file2)] += cosine_set[set][i][j] / (size_files[file1] * size_files[file2])
+            my_result[(file2, file1)] += cosine_set[set][i][j] / (size_files[file1] * size_files[file2])
 
-print(my_result)
-# # exit()
-# save_path = f'{args.filename}-{SUMMARY_TYPE}-{DATA_TYPE}-{CLUSTER_TYPE}'
-# plot_title = f'{args.filename}||{SUMMARY_TYPE}||{DATA_TYPE}||{CLUSTER_TYPE}'
-# # Plot results.
+final_tensor = np.zeros((len(filenames), len(filenames)))
+for i in range(len(filenames)):
+    for j in range(len(filenames)):
+        file1 = filenames[i]
+        file2 = filenames[j]
+        if (file1, file2) in my_result:
+            final_tensor[i][j] = my_result[(file1, file2)]
 
-# save_path = "yitao.png"
-# plot_title = "hi"
-#
-# plot_pipeline(
-#     cosine_set,
-#     list(label_set),
-#     plot_title,
-#     save_path
-# )
+print(filenames)
+
+plt.imshow(final_tensor)
+plt.savefig("average_cos_similarity_spreadsheets.png")
