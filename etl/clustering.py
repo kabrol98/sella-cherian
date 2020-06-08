@@ -1,3 +1,8 @@
+DESCRIPTION = """
+Stage 3 will take the set of column summary feature vectors 
+and cluster them using a distance metric, reducing the candidate pairs 
+to test for similarity by a factor of sqrt(N).
+"""
 import numpy as np
 from sklearn.cluster import KMeans
 from math import sqrt
