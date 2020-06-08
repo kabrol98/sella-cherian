@@ -19,6 +19,9 @@ import openpyxl
 import pyexcel as p
 from os import listdir
 from os.path import isfile, join
+import csv
+from collections import OrderedDict
+import xlsxwriter
 
 # Silimarity Modules
 from components.similarity.cosine_similarity import CosineSimilarity
@@ -110,8 +113,6 @@ for file_columns in column_names:
         size_files[file_columns] = 0
     size_files[file_columns] += 1
 
-print(size_files)
-
 # print(columns_vectorized[0])
 N = len(columns_vectorized)
 
@@ -177,16 +178,18 @@ cosine_set = SimilarityClass(cluster_set).compute_sim()
 
 my_result = {}
 
-for set in range(len(name_set)):
-    for i in range(len(name_set[set]) - 1):
-        for j in range(i + 1, len(name_set[set])):
-            file1 = name_set[set][i]
-            file2 = name_set[set][j]
+for _set in range(len(name_set)):
+    for i in range(len(name_set[_set]) - 1):
+        for j in range(i + 1, len(name_set[_set])):
+            file1 = name_set[_set][i]
+            file2 = name_set[_set][j]
+            if file1 == file2:
+                continue
             if (file1, file2) not in my_result:
                 my_result[(file1, file2)] = 0
                 my_result[(file2, file1)] = 0
-            my_result[(file1, file2)] += cosine_set[set][i][j] / (size_files[file1] * size_files[file2])
-            my_result[(file2, file1)] += cosine_set[set][i][j] / (size_files[file1] * size_files[file2])
+            my_result[(file1, file2)] += cosine_set[_set][i][j] / (size_files[file1] * size_files[file2])
+            my_result[(file2, file1)] += cosine_set[_set][i][j] / (size_files[file1] * size_files[file2])
 
 final_tensor = np.zeros((len(filenames), len(filenames)))
 for i in range(len(filenames)):
@@ -196,7 +199,35 @@ for i in range(len(filenames)):
         if (file1, file2) in my_result:
             final_tensor[i][j] = my_result[(file1, file2)]
 
-print(filenames)
+checking_pairs = set()
+compare_file = open("training_data/row_containment/spreadsheet_relationships.csv", "r")
+for line in compare_file.readlines():
+    file1 = line.split(', ')[0] + "x"
+    file2 = line.split(', ')[2] + "x"
+    checking_pairs.add((file1, file2))
+compare_file.close()
 
-plt.imshow(final_tensor)
-plt.savefig("average_cos_similarity_spreadsheets.png")
+
+filenames = [f for f in listdir("training_data/row_containment/spreadsheet") if isfile(join("training_data/row_containment/spreadsheet", f)) and "xlsx" in f] + [f for f in listdir("training_data/row_containment/data") if isfile(join("training_data/row_containment/data", f)) and "xlsx" in f]
+# record_file = open("row_containment_relation_detection.csv", "w")
+workbook = xlsxwriter.Workbook('row_containment_relation_detection.xlsx')
+worksheet = workbook.add_worksheet('1')
+book_format = workbook.add_format(properties={'bold': True, 'font_color': 'red'})
+
+for i in range(len(filenames)):
+    worksheet.write(0, i + 1, filenames[i])
+
+print(checking_pairs)
+
+for i in range(len(filenames)):
+    worksheet.write(i + 1, 0, filenames[i])
+    for j in range(len(filenames)):
+        if (filenames[i], filenames[j]) in checking_pairs:
+            worksheet.write(i + 1, j + 1, str(final_tensor[i][j]), book_format)
+        else:
+            worksheet.write(i + 1, j + 1, str(final_tensor[i][j]))
+
+workbook.close()
+
+# plt.imshow(final_tensor)
+# plt.savefig("average_cos_similarity_spreadsheets.png")
