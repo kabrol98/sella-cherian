@@ -34,23 +34,25 @@ def parse_etl_args():
     # Configure argument parser
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('-S', '--file_sample', default=5, type=float, help="Pick number of files to randomly sample")
+    parser.add_argument('-source', '-dir', dest="directory", default=None)
     stage = parser.add_mutually_exclusive_group()
     stage.add_argument('-extraction', dest='stage', action="store_const", const=0, help=desc0)
     stage.add_argument('-summaries', dest='stage', action="store_const", const=1, help=desc1)
     stage.add_argument('-clustering', dest='stage', action="store_const", const=2, help=desc2)
     stage.add_argument('-similarity', dest='stage', action="store_const", const=3)
     
-    parser.add_argument('-start', dest='start', type=int)
-    parser.add_argument('-source', '-dir', dest="directory", default=None)
+    parser.add_argument('-load', dest='loadFile', type=int)
     parser.set_defaults(stage=0, start=0)
     args = parser.parse_args()
     return args
 
 def save_stage(stage,sample_size, data):
+    # data['stage'] = stage
     outpath = f"etl/tmp/etl_{stage}_{sample_size}_{date.today().isoformat()}.pickle"
     with open(outpath, "wb") as f:
         pickle.dump(data,f)
         print(f'saved {stage} stage to {outpath}.')
+    exit()
         
 args = parse_etl_args()
 stage = STAGE_NAMES[args.stage]
@@ -61,18 +63,15 @@ dir = args.directory
 extraction_results = extract(sample_size, dir)
 if stage == 'extraction':
     save_stage(stage,sample_size, extraction_results)
-    exit()
-
+# Stage two: summaries
 summary_results = summaries(extraction_results)
 if stage == 'summaries':
     save_stage(stage,sample_size, summary_results)
-    exit()
-    
+# Stage three: clustering
 clustering_results = clustering(summary_results)
 if stage == 'clustering':
     save_stage(stage,sample_size, clustering_results)
-    exit()
-
+# Stage four: similarity
 similarity_results = similarity(clustering_results)
 outpath = f"etl/tmp/etl_column_graph_{sample_size}_{date.today().isoformat()}.csv"
 arr = np.asarray(similarity_results['columns'])
@@ -89,4 +88,3 @@ np.savetxt(outpath, arr ,fmt='%s', delimiter=",")
 exit()
 
 print(f'Stage {stage} not yet supported')
-exit()

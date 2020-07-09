@@ -24,6 +24,8 @@ def sample_dataset(s, fpath):
     if n == 0:
         print('error: please enter a valid source directory')
         exit()
+    if s < 0:
+        s = n
     s = min(s,n)
     index = sample(n, s)
     return filenames[index]

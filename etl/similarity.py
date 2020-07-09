@@ -8,7 +8,7 @@ def similarity(data):
     
     text_names = data['text_names']
     numeric_names = data['numeric_names']
-    
+    sheet_record = {}
     edges = []
     sheet_edges = []
     for t_c, t_n in zip(text_clusters, text_names):
@@ -23,7 +23,11 @@ def similarity(data):
                 for a,b in zip(A_info[:-1],B_info[:-1]):
                     if not a == b:
                         edges.append(A_info + B_info)
-                        sheet_edges.append(A_info[:-1]+ B_info[:-1])
+                        srow = A_info[:-1]+ B_info[:-1]
+                        if sheet_record[tuple(srow)]:
+                            sheet_edges.append(srow)
+                            sheet_record[tuple(srow)] = True
+                        
                         break
     
     for t_c, t_n in zip(numeric_clusters, numeric_names):
@@ -38,7 +42,10 @@ def similarity(data):
                 for a,b in zip(A_info[:-1],B_info[:-1]):
                     if not a == b:
                         edges.append(A_info + B_info)
-                        sheet_edges.append(A_info[:-1] + B_info[:-1])
+                        srow = A_info[:-1]+ B_info[:-1]
+                        if sheet_record[tuple(srow)]:
+                            sheet_edges.append(srow)
+                            sheet_record[tuple(srow)] = True
                         break
     return {'columns': edges, 'sheets': sheet_edges}
                 
